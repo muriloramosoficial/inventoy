@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Box, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -139,6 +140,16 @@ export default function LoginPage() {
               ? "Sign in with Magic Link instead"
               : "Sign in with password instead"}
           </button>
+
+          <div className="text-center pt-2 border-t border-border-default">
+            <span className="text-sm text-text-muted">Don&apos;t have an account? </span>
+            <Link
+              href="/register"
+              className="text-sm text-brand hover:text-brand-hover transition-colors"
+            >
+              Sign Up
+            </Link>
+          </div>
         </form>
       </div>
     </div>

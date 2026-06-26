@@ -38,11 +38,12 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Redirect to login if not authenticated and not on public pages
-  // Public pages: landing (/), login, auth routes
+  // Public pages: landing (/), login, register, auth routes
   if (
     !user &&
     request.nextUrl.pathname !== "/" &&
     !request.nextUrl.pathname.startsWith("/login") &&
+    !request.nextUrl.pathname.startsWith("/register") &&
     !request.nextUrl.pathname.startsWith("/auth")
   ) {
     const url = request.nextUrl.clone();

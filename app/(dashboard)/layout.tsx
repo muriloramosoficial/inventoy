@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { Menu, X } from "lucide-react";
 
 export default function DashboardLayout({
   children,
@@ -13,6 +14,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [userName, setUserName] = useState("Admin");
   const [tenantName, setTenantName] = useState("INVENTOY");
   const router = useRouter();
@@ -49,19 +51,47 @@ export default function DashboardLayout({
     router.push("/login");
   };
 
+  const pathname = usePathname();
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
   return (
     <div className="h-full flex">
-      {/* Sidebar */}
-      <Sidebar
-        collapsed={collapsed}
-        onToggle={() => setCollapsed(!collapsed)}
-      />
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile sidebar drawer */}
+      <div
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 transform transition-transform duration-200 lg:hidden",
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <Sidebar collapsed={false} onToggle={() => setMobileOpen(false)} />
+      </div>
+
+      {/* Desktop sidebar */}
+      <div className="hidden lg:block">
+        <Sidebar
+          collapsed={collapsed}
+          onToggle={() => setCollapsed(!collapsed)}
+        />
+      </div>
 
       {/* Main content area */}
       <div
         className={cn(
           "flex-1 flex flex-col min-h-full transition-all duration-200",
-          collapsed ? "ml-16" : "ml-56"
+          "lg:ml-56",
+          collapsed && "lg:ml-16"
         )}
       >
         {/* Topbar */}
@@ -69,6 +99,7 @@ export default function DashboardLayout({
           tenantName={tenantName}
           userName={userName}
           onLogout={handleLogout}
+          onMenuToggle={() => setMobileOpen(true)}
         />
 
         {/* Page content */}

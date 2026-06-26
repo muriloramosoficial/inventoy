@@ -11,6 +11,7 @@ import {
   User,
   LogOut,
   Settings,
+  Menu,
 } from "lucide-react";
 
 interface TopbarProps {
@@ -18,6 +19,7 @@ interface TopbarProps {
   userName?: string;
   userAvatar?: string | null;
   onLogout?: () => void;
+  onMenuToggle?: () => void;
 }
 
 export function Topbar({
@@ -25,6 +27,7 @@ export function Topbar({
   userName = "Admin",
   userAvatar,
   onLogout,
+  onMenuToggle,
 }: TopbarProps) {
   const pathname = usePathname();
   const [commandOpen, setCommandOpen] = useState(false);
@@ -43,6 +46,14 @@ export function Topbar({
   return (
     <>
       <header className="h-14 border-b border-border-default bg-bg-secondary flex items-center justify-between px-4 lg:px-6 shrink-0">
+        {/* Mobile menu button */}
+        <button
+          onClick={onMenuToggle}
+          className="lg:hidden p-2 -ml-2 text-text-muted hover:text-text-primary transition-colors"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-sm font-mono text-text-muted hidden sm:inline">

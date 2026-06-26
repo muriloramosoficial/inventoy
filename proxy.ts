@@ -12,12 +12,12 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - Root path / (landing page - public)
-     * - /login (auth page)
-     * - /auth (auth routes)
-     * - /api/webhooks (webhooks are external)
+     * - login (auth page)
+     * - register (signup page)
+     * - auth (auth routes)
+     * - api/webhooks (webhooks are external)
      * - Static files (.svg, .png, .jpg, etc.)
      */
-    "/((?!_next/static|_next/image|favicon.ico$|^/$|login|auth|api/webhooks|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|login|register|auth|api/webhooks|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Box, Mail, Lock, Eye, EyeOff, User, Building2, CheckCircle } from "lucide-react";
+import { Box, Mail, Lock, Eye, EyeOff, User, Building2 } from "lucide-react";
 import Link from "next/link";
 
 export default function RegisterPage() {

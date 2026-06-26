@@ -5,8 +5,11 @@
  *  Tipografia técnica · Texturas sutis                        *
  * ─────────────────────────────────────────────────────────── */
 
-/* ── Custom Properties ── */
-:root {
+/* ── Theme (Tailwind v4) ──
+ * Values defined DIRECTLY in @theme - no circular var() references.
+ * This generates CSS variables AND Tailwind utilities simultaneously.
+ */
+@theme inline {
   /* Backgrounds */
   --color-bg-primary: #121212;
   --color-bg-secondary: #1c1c1c;
@@ -15,9 +18,9 @@
   --color-bg-elevated: #2e2e2e;
 
   /* Brand */
-  --color-brand-primary: #3ECF8E;
-  --color-brand-primary-hover: #45d99a;
-  --color-brand-primary-dim: rgba(62, 207, 142, 0.12);
+  --color-brand: #3ECF8E;
+  --color-brand-hover: #45d99a;
+  --color-brand-dim: rgba(62, 207, 142, 0.12);
   --color-brand-info: #53B1E5;
   --color-brand-warning: #F5A623;
   --color-brand-danger: #E5484D;
@@ -34,7 +37,7 @@
   --color-text-muted: #52525B;
   --color-text-brand: #3ECF8E;
 
-  /* Mono badges */
+  /* Badges */
   --color-badge-bg: rgba(62, 207, 142, 0.08);
   --color-badge-border: rgba(62, 207, 142, 0.2);
 
@@ -42,43 +45,12 @@
   --color-chart-line: #3ECF8E;
   --color-chart-area: rgba(62, 207, 142, 0.08);
   --color-chart-grid: #2a2a2a;
-}
 
-/* ── Theme Inline (Tailwind v4) ── */
-@theme inline {
-  --color-bg-primary: var(--color-bg-primary);
-  --color-bg-secondary: var(--color-bg-secondary);
-  --color-bg-surface: var(--color-bg-surface);
-  --color-bg-surface-hover: var(--color-bg-surface-hover);
-  --color-bg-elevated: var(--color-bg-elevated);
-
-  --color-brand: var(--color-brand-primary);
-  --color-brand-hover: var(--color-brand-primary-hover);
-  --color-brand-dim: var(--color-brand-primary-dim);
-  --color-brand-info: var(--color-brand-info);
-  --color-brand-warning: var(--color-brand-warning);
-  --color-brand-danger: var(--color-brand-danger);
-  --color-brand-danger-dim: var(--color-brand-danger-dim);
-
-  --color-border-default: var(--color-border-default);
-  --color-border-muted: var(--color-border-muted);
-  --color-border-brand: var(--color-border-brand);
-
-  --color-text-primary: var(--color-text-primary);
-  --color-text-secondary: var(--color-text-secondary);
-  --color-text-muted: var(--color-text-muted);
-  --color-text-brand: var(--color-text-brand);
-
-  --color-badge-bg: var(--color-badge-bg);
-  --color-badge-border: var(--color-badge-border);
-
-  --color-chart-line: var(--color-chart-line);
-  --color-chart-area: var(--color-chart-area);
-  --color-chart-grid: var(--color-chart-grid);
-
+  /* Fonts */
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
 
+  /* Radius */
   --radius-button: 4px;
   --radius-card: 6px;
   --radius-modal: 8px;
@@ -113,7 +85,7 @@ body {
 /* ── Selection ── */
 ::selection {
   background-color: var(--color-brand-dim);
-  color: var(--color-brand-primary);
+  color: var(--color-brand);
 }
 
 /* ── Scrollbar ── */
@@ -138,11 +110,11 @@ body {
 /* ── Focus Ring ── */
 *:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-brand-primary);
+  box-shadow: 0 0 0 2px #121212, 0 0 0 4px #3ECF8E;
   border-radius: 2px;
 }
 
-/* ── Glass effect (neon glass on hover) ── */
+/* ── Custom Utilities ── */
 @utility neon-glow {
   box-shadow: 0 0 0 1px rgba(62, 207, 142, 0.15), 0 0 20px rgba(62, 207, 142, 0.05);
 }
@@ -154,18 +126,15 @@ body {
   }
 }
 
-/* ── Terminal-style divider ── */
 @utility terminal-divider {
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid #333333;
 }
 
-/* ── Monospace text for data ── */
 @utility mono {
-  font-family: var(--font-mono);
+  font-family: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
   letter-spacing: -0.02em;
 }
 
-/* ── Cmd+K overlay ── */
 @utility command-overlay {
   background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(4px);

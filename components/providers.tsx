@@ -12,12 +12,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Prevent hydration mismatch by not rendering i18n-dependent content until mounted
+  // Use opacity 0 instead of visibility hidden to avoid layout issues
   if (!mounted) {
-    return (
-      <div className="h-full bg-bg-primary" style={{ visibility: "hidden" }}>
-        {children}
-      </div>
-    );
+    return <div className="h-full opacity-0">{children}</div>;
   }
 
   return (

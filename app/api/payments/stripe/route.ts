@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stripe, createStripeCustomer, getStripePublishableKey } from "@/lib/stripe";
+import { createStripeCustomer, getStripePublishableKey, getStripeClient } from "@/lib/stripe";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,6 +12,8 @@ export async function POST(req: NextRequest) {
       const customer = await createStripeCustomer(email, name);
       stripeCustomerId = customer.id;
     }
+
+    const stripe = getStripeClient();
 
     // Create checkout session
     const session = await stripe.checkout.sessions.create({

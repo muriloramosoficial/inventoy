@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Box, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Box, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -13,43 +13,42 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<"password" | "magic">("password");
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [error, setError] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setMessage(null);
+    setError("");
+
+    if (!email || !password) {
+      setError("Preencha todos os campos");
+      setLoading(false);
+      return;
+    }
 
     try {
       const { createClient } = await import("@/lib/supabase/client");
       const supabase = createClient();
 
-      if (mode === "magic") {
-        const { error } = await supabase.auth.signInWithOtp({
-          email,
-          options: {
-            emailRedirectTo: `${window.location.origin}/callback`,
-          },
-        });
-        if (error) throw error;
-        setMessage({
-          type: "success",
-          text: "Magic link sent! Check your email.",
-        });
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-        router.push("/dashboard");
-      }
-    } catch (err) {
-      setMessage({
-        type: "error",
-        text: err instanceof Error ? err.message : "An error occurred",
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
       });
+
+      if (signInError) {
+        if (signInError.message.includes("Invalid login credentials")) {
+          setError("Email ou senha incorretos");
+        } else if (signInError.message.includes("Email not confirmed")) {
+          setError("Confirme seu email antes de entrar. Verifique sua caixa de entrada.");
+        } else {
+          setError(signInError.message);
+        }
+        return;
+      }
+
+      router.push("/dashboard");
+    } catch (err) {
+      setError("Erro de conexão. Verifique sua internet.");
     } finally {
       setLoading(false);
     }
@@ -57,19 +56,14 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center p-4">
-      {/* Noise is global */}
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex flex-col items-center mb-10">
-          <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-brand/10 mb-4">
+          <Link href="/" className="flex items-center justify-center w-16 h-16 rounded-xl bg-brand/10 mb-4 hover:bg-brand/[0.15] transition-colors">
             <Box className="h-8 w-8 text-brand" />
-          </div>
-          <h1 className="text-2xl font-semibold text-text-primary tracking-tight">
-            INVENTOY
-          </h1>
-          <p className="text-sm text-text-muted mt-1">
-            Gestão de Estoque Inteligente
-          </p>
+          </Link>
+          <h1 className="text-2xl font-semibold text-text-primary tracking-tight">INVENTOY</h1>
+          <p className="text-sm text-text-muted mt-1">Gestão de Estoque Inteligente</p>
         </div>
 
         {/* Form */}
@@ -77,79 +71,89 @@ export default function LoginPage() {
           <Input
             label="Email"
             type="email"
-            placeholder="you@company.com"
+            placeholder="seu@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             icon={<Mail className="h-4 w-4" />}
           />
 
-          {mode === "password" && (
-            <div className="relative">
-              <Input
-                label="Password"
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                icon={<Lock className="h-4 w-4" />}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-[34px] text-text-muted hover:text-text-primary"
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
+          <div className="relative">
+            <Input
+              label="Senha"
+              type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              icon={<Lock className="h-4 w-4" />}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-[34px] text-text-muted hover:text-text-primary transition-colors"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+
+          {error && (
+            <div className="text-sm p-3 rounded-[4px] border border-brand-danger/20 bg-brand-danger-dim text-brand-danger">
+              {error}
             </div>
           )}
 
           <Button type="submit" className="w-full h-11" loading={loading}>
-            {mode === "magic" ? "Send Magic Link" : "Sign In"}
+            Entrar
           </Button>
 
-          {message && (
-            <div
-              className={`text-sm p-3 rounded-[4px] border ${
-                message.type === "success"
-                  ? "border-brand/20 bg-brand/[0.08] text-brand"
-                  : "border-brand-danger/20 bg-brand-danger-dim text-brand-danger"
-              }`}
-            >
-              {message.text}
-            </div>
-          )}
-
-          <div className="flex items-center gap-3 pt-2">
-            <div className="flex-1 h-px bg-border-default" />
-            <span className="text-xs text-text-muted">or</span>
-            <div className="flex-1 h-px bg-border-default" />
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setMode(mode === "password" ? "magic" : "password")}
-            className="w-full text-sm text-text-muted hover:text-brand transition-colors text-center"
-          >
-            {mode === "password"
-              ? "Sign in with Magic Link instead"
-              : "Sign in with password instead"}
-          </button>
-
-          <div className="text-center pt-2 border-t border-border-default">
-            <span className="text-sm text-text-muted">Don&apos;t have an account? </span>
+          <div className="text-center pt-4">
+            <span className="text-sm text-text-muted">Não tem conta? </span>
             <Link
               href="/register"
-              className="text-sm text-brand hover:text-brand-hover transition-colors"
+              className="text-sm text-brand hover:text-brand-hover transition-colors font-medium"
             >
-              Sign Up
+              Cadastre-se grátis
             </Link>
           </div>
+
+          <div className="relative pt-2">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border-default" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-bg-primary px-2 text-text-muted">ou</span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full h-11"
+            onClick={async () => {
+              setLoading(true);
+              setError("");
+              try {
+                const { createClient } = await import("@/lib/supabase/client");
+                const supabase = createClient();
+                const { error: magicError } = await supabase.auth.signInWithOtp({
+                  email: email.trim(),
+                  options: { emailRedirectTo: `${window.location.origin}/callback` },
+                });
+                if (magicError) throw magicError;
+                setError("");
+                alert("Link mágico enviado! Verifique seu email.");
+              } catch (err: any) {
+                setError(err?.message || "Erro ao enviar link mágico");
+              } finally {
+                setLoading(false);
+              }
+            }}
+          >
+            <Mail className="h-4 w-4" />
+            Entrar com link mágico
+          </Button>
         </form>
       </div>
     </div>

@@ -14,7 +14,7 @@ i18n
   )
   .init({
     lng: "pt-BR",
-    fallbackLng: "en",
+    fallbackLng: "pt-BR",
     defaultNS: "common",
     ns: ["common", "inventory", "dashboard", "movements", "settings", "auth"],
 
@@ -23,11 +23,6 @@ i18n
     },
 
     returnObjects: true,
-
-    detection: {
-      order: ["localStorage", "navigator"],
-      caches: ["localStorage"],
-    },
   });
 
 export default i18n;

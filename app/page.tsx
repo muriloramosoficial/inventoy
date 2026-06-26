@@ -3,38 +3,38 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Box, BarChart3, Package, ScanLine, Globe, CreditCard, Shield, ArrowRight, Check, Menu, X } from "lucide-react";
+import { Box, BarChart3, Package, ScanLine, CreditCard, Shield, ArrowRight, Check, Menu, X, QrCode, Barcode } from "lucide-react";
 
 const features = [
   {
     icon: Package,
-    title: "Inventory Control",
-    desc: "Real-time stock tracking with multi-location support. Know exactly what you have and where.",
+    title: "Controle de Estoque",
+    desc: "Rastreamento em tempo real com suporte a múltiplos depósitos. Saiba exatamente o que você tem e onde está.",
   },
   {
     icon: ScanLine,
-    title: "Barcode Scanner",
-    desc: "Mobile-first barcode scanning. Receive, transfer, and count inventory from the warehouse floor.",
+    title: "Leitor de Código de Barras",
+    desc: "Scanner mobile nativo. Receba, transfira e faça contagem de estoque direto do chão de fábrica.",
   },
   {
     icon: BarChart3,
     title: "Analytics",
-    desc: "Bento grid dashboard with movement charts, low stock alerts, and valuation reports.",
+    desc: "Dashboard completo com gráficos de movimentação, alertas de estoque baixo e relatórios de valuation.",
   },
   {
-    icon: Globe,
-    title: "Multi-language",
-    desc: "Interface in Portuguese, English, and Spanish. Your team works in their preferred language.",
+    icon: QrCode,
+    title: "Pagamentos via PIX",
+    desc: "Integração com ASAAS. Receba pagamentos por PIX, Boleto e Cartão de Crédito — tudo em R$.",
   },
   {
     icon: CreditCard,
-    title: "Stripe + ASAAS",
-    desc: "Global payments via Stripe. Brazilian payments via ASAAS (PIX, Boleto, Credit Card).",
+    title: "Assinatura Mensal",
+    desc: "Planos a partir de R$ 49/mês. Sem taxa de setup. Cancele quando quiser.",
   },
   {
     icon: Shield,
-    title: "Multi-tenant Security",
-    desc: "Row Level Security ensures each company sees only their data. SOC2-grade protection.",
+    title: "Segurança Multi-empresa",
+    desc: "Row Level Security garante que cada empresa veja apenas seus dados. Proteção nível bancário.",
   },
 ];
 
@@ -42,28 +42,28 @@ const plans = [
   {
     name: "Free",
     price: "R$ 0",
-    period: "/month",
-    desc: "For small teams getting started",
-    features: ["Up to 100 products", "1 user", "Basic dashboard", "Manual entries"],
-    cta: "Get Started",
+    period: "/mês",
+    desc: "Para pequenas equipes começando",
+    features: ["Até 100 produtos", "1 usuário", "Dashboard básico", "Entradas manuais"],
+    cta: "Começar Grátis",
     highlighted: false,
   },
   {
     name: "Starter",
     price: "R$ 49",
-    period: "/month",
-    desc: "For growing businesses",
-    features: ["Up to 1,000 products", "5 users", "Advanced analytics", "Barcode scanning", "CSV export"],
-    cta: "Start Free Trial",
+    period: "/mês",
+    desc: "Para negócios em crescimento",
+    features: ["Até 1.000 produtos", "5 usuários", "Analytics avançado", "Scanner de código", "Exportação CSV", "Suporte ASAAS (PIX/Boleto)"],
+    cta: "Testar Grátis",
     highlighted: true,
   },
   {
     name: "Pro",
     price: "R$ 149",
-    period: "/month",
-    desc: "For scaling operations",
-    features: ["Up to 10,000 products", "Unlimited users", "API access", "Custom reports", "Priority support"],
-    cta: "Start Free Trial",
+    period: "/mês",
+    desc: "Para operações em escala",
+    features: ["Até 10.000 produtos", "Usuários ilimitados", "API access", "Relatórios customizados", "Suporte prioritário"],
+    cta: "Testar Grátis",
     highlighted: false,
   },
 ];
@@ -79,19 +79,14 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleGetStarted = () => {
-    router.push("/login");
-  };
-
   return (
     <div className="min-h-screen bg-bg-primary">
-      {/* ─── Navbar ─── */}
+      {/* Navbar */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${
         scrolled ? "bg-bg-primary/90 backdrop-blur-md border-b border-border-default" : "bg-transparent"
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-md bg-brand/10 flex items-center justify-center">
                 <Box className="h-5 w-5 text-brand" />
@@ -99,20 +94,18 @@ export default function LandingPage() {
               <span className="text-lg font-semibold text-text-primary tracking-tight">INVENTOY</span>
             </div>
 
-            {/* Desktop Nav */}
             <nav className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-sm text-text-secondary hover:text-text-primary transition-colors">Features</a>
-              <a href="#pricing" className="text-sm text-text-secondary hover:text-text-primary transition-colors">Pricing</a>
+              <a href="#features" className="text-sm text-text-secondary hover:text-text-primary transition-colors">Recursos</a>
+              <a href="#pricing" className="text-sm text-text-secondary hover:text-text-primary transition-colors">Preços</a>
               <div className="flex items-center gap-3">
-                <Button variant="ghost" size="sm" onClick={() => router.push("/login")}>Sign In</Button>
-                <Button size="sm" onClick={handleGetStarted}>
-                  Get Started
+                <Button variant="ghost" size="sm" onClick={() => router.push("/login")}>Entrar</Button>
+                <Button size="sm" onClick={() => router.push("/register")}>
+                  Começar
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               </div>
             </nav>
 
-            {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 text-text-muted hover:text-text-primary"
@@ -122,81 +115,79 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-border-default bg-bg-secondary">
             <div className="px-4 py-4 space-y-3">
-              <a href="#features" className="block text-sm text-text-secondary py-2" onClick={() => setMobileMenuOpen(false)}>Features</a>
-              <a href="#pricing" className="block text-sm text-text-secondary py-2" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
+              <a href="#features" className="block text-sm text-text-secondary py-2" onClick={() => setMobileMenuOpen(false)}>Recursos</a>
+              <a href="#pricing" className="block text-sm text-text-secondary py-2" onClick={() => setMobileMenuOpen(false)}>Preços</a>
               <div className="flex flex-col gap-2 pt-2">
-                <Button variant="ghost" onClick={() => router.push("/login")}>Sign In</Button>
-                <Button onClick={handleGetStarted}>Get Started</Button>
+                <Button variant="ghost" onClick={() => router.push("/login")}>Entrar</Button>
+                <Button onClick={() => router.push("/register")}>Começar</Button>
               </div>
             </div>
           </div>
         )}
       </header>
 
-      {/* ─── Hero ─── */}
+      {/* Hero */}
       <section className="relative pt-32 pb-20 sm:pt-40 sm:pb-28 px-4">
-        {/* Grid background decoration */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(62,207,142,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(62,207,142,0.03)_1px,transparent_1px)] bg-[size:64px_64px] pointer-events-none" />
 
         <div className="relative max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-brand/20 bg-brand/[0.06] mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse" />
-            <span className="text-xs font-mono text-brand tracking-wide">Multi-tenant SaaS</span>
+            <span className="text-xs font-mono text-brand tracking-wide">Feito no Brasil 🇧🇷</span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-text-primary leading-[1.1]">
-            Smart Inventory
+            Gestão de Estoque
             <br />
-            <span className="text-brand">Management</span>
+            <span className="text-brand">Inteligente</span>
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-text-secondary max-w-2xl mx-auto leading-relaxed">
-            Track, manage, and optimize your inventory in real-time.
-            Built for global teams with local payments — Stripe worldwide, ASAAS in Brazil.
+            Controle seu inventário em tempo real com suporte a PIX, Boleto e Cartão.
+            Do chão de fábrica ao boardroom — ferramentas para cada papel na sua empresa.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" onClick={handleGetStarted}>
-              Start Free Trial
+            <Button size="lg" onClick={() => router.push("/register")}>
+              Testar Grátis
               <ArrowRight className="h-4 w-4" />
             </Button>
             <Button variant="outline" size="lg" onClick={() => router.push("/login")}>
-              Sign In
+              Entrar
             </Button>
           </div>
 
           <div className="mt-12 flex items-center justify-center gap-6 sm:gap-10 text-sm text-text-muted">
             <div className="flex items-center gap-2">
               <Check className="h-4 w-4 text-brand" />
-              <span>No credit card</span>
+              <span>Sem cartão de crédito</span>
             </div>
             <div className="flex items-center gap-2">
               <Check className="h-4 w-4 text-brand" />
-              <span>14-day free trial</span>
+              <span>14 dias de teste grátis</span>
             </div>
             <div className="flex items-center gap-2">
               <Check className="h-4 w-4 text-brand" />
-              <span>Cancel anytime</span>
+              <span>Cancele quando quiser</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ─── Features ─── */}
+      {/* Features */}
       <section id="features" className="py-20 sm:py-28 px-4 border-t border-border-default">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-semibold text-text-primary tracking-tight">
-              Everything you need to
+              Tudo que você precisa para
               <br />
-              <span className="text-brand">manage inventory</span>
+              <span className="text-brand">gerenciar seu estoque</span>
             </h2>
             <p className="mt-4 text-text-secondary max-w-xl mx-auto">
-              From warehouse floor to boardroom — tools for every role in your organization.
+              Do almoxarifado à diretoria — ferramentas para cada área da sua empresa.
             </p>
           </div>
 
@@ -217,15 +208,15 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── Pricing ─── */}
+      {/* Pricing */}
       <section id="pricing" className="py-20 sm:py-28 px-4 border-t border-border-default">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-semibold text-text-primary tracking-tight">
-              Simple, transparent pricing
+              Preços simples e transparentes
             </h2>
             <p className="mt-4 text-text-secondary max-w-xl mx-auto">
-              Start free, upgrade as you grow. No hidden fees.
+              Comece grátis, upgrade conforme crescer. Pagamento por PIX, Boleto ou Cartão.
             </p>
           </div>
 
@@ -241,7 +232,7 @@ export default function LandingPage() {
               >
                 {plan.highlighted && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-brand text-black text-xs font-medium">
-                    Most Popular
+                    Mais Popular
                   </div>
                 )}
 
@@ -265,7 +256,7 @@ export default function LandingPage() {
                 <Button
                   variant={plan.highlighted ? "primary" : "outline"}
                   className="w-full"
-                  onClick={handleGetStarted}
+                  onClick={() => router.push("/register")}
                 >
                   {plan.cta}
                 </Button>
@@ -275,37 +266,36 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── CTA ─── */}
+      {/* CTA */}
       <section className="py-20 px-4 border-t border-border-default">
         <div className="max-w-3xl mx-auto text-center">
           <div className="p-8 sm:p-12 rounded-xl border border-border-default bg-bg-surface relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-brand/50 to-transparent" />
 
             <h2 className="text-3xl sm:text-4xl font-semibold text-text-primary tracking-tight mb-4">
-              Ready to transform your
+              Pronto para transformar sua
               <br />
-              <span className="text-brand">inventory management?</span>
+              <span className="text-brand">gestão de estoque?</span>
             </h2>
             <p className="text-text-secondary mb-8 max-w-lg mx-auto">
-              Join thousands of companies using INVENTOY to track, manage, and optimize their inventory.
+              Junte-se a centenas de empresas que já usam o INVENTOY para controlar seu inventário.
             </p>
-            <Button size="lg" onClick={handleGetStarted}>
-              Start Free Trial
+            <Button size="lg" onClick={() => router.push("/register")}>
+              Testar Grátis
               <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
       </section>
 
-      {/* ─── Footer ─── */}
+      {/* Footer */}
       <footer className="border-t border-border-default py-8 px-4">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Box className="h-4 w-4 text-brand" />
-            <span className="text-sm text-text-muted">INVENTOY © 2026</span>
+            <span className="text-sm text-text-muted">INVENTOY © 2026 — Feito no Brasil 🇧🇷</span>
           </div>
           <div className="flex items-center gap-6">
-            <span className="text-xs text-text-muted">Stripe</span>
             <span className="text-xs text-text-muted">ASAAS</span>
             <span className="text-xs text-text-muted">Supabase</span>
             <span className="text-xs text-text-muted">Next.js</span>

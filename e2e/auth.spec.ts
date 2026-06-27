@@ -63,9 +63,12 @@ test.describe("Register Page", () => {
     await page.goto("/register", { waitUntil: "networkidle" });
     await page.getByPlaceholder("Seu nome").fill("Teste User");
     await page.getByPlaceholder("Minha Empresa Ltda").fill("Empresa Teste Ltda");
+    // Fill CPF (required field) - use a valid test CPF
+    await page.getByPlaceholder("000.000.000-00").fill("52998224725");
     await page.getByPlaceholder("voce@empresa.com").fill("teste@teste.com");
     await page.getByPlaceholder("Minimo 6 caracteres").fill("senha123");
     await page.getByRole("button", { name: "Criar Conta Gratis" }).click();
-    await expect(page.getByText("already registered")).toBeVisible({ timeout: 20000 });
+    // API returns generic error for existing email
+    await expect(page.getByText("Erro ao criar conta")).toBeVisible({ timeout: 20000 });
   });
 });

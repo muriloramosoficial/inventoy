@@ -148,7 +148,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   />
                   <div className="absolute right-0 top-full mt-1 z-20 w-48 rounded-[6px] border border-border-default bg-bg-secondary shadow-xl py-1">
                     <Link
-                      href="/settings"
+                      href="/admin/settings"
                       onClick={() => setUserMenuOpen(false)}
                       className="flex items-center gap-2 w-full px-3 py-2 text-sm text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary transition-colors"
                     >

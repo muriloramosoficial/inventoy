@@ -14,14 +14,14 @@
 ```
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByText('already registered')
+Locator: getByText('Erro ao criar conta')
 Expected: visible
 Timeout: 20000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByText('already registered')
+  - waiting for getByText('Erro ao criar conta')
 
 ```
 
@@ -49,6 +49,7 @@ Call log:
 - text: CPF do responsavel *
 - textbox "CPF do responsavel *":
   - /placeholder: 000.000.000-00
+  - text: 529.982.247-25
 - paragraph: Documento do responsavel legal pela empresa
 - text: CNPJ da empresa (opcional no plano Free)
 - textbox "CNPJ da empresa (opcional no plano Free)":
@@ -72,7 +73,7 @@ Call log:
   - link "Politica de Privacidade":
     - /url: /privacidade
   - text: .
-- alert: Informe um CPF valido para o responsavel
+- alert: Muitas tentativas. Tente novamente em 75 segundos.
 - button "Criar Conta Gratis"
 - text: Ja tem conta?
 - link "Fazer login":
@@ -148,12 +149,15 @@ Call log:
   63 |     await page.goto("/register", { waitUntil: "networkidle" });
   64 |     await page.getByPlaceholder("Seu nome").fill("Teste User");
   65 |     await page.getByPlaceholder("Minha Empresa Ltda").fill("Empresa Teste Ltda");
-  66 |     await page.getByPlaceholder("voce@empresa.com").fill("teste@teste.com");
-  67 |     await page.getByPlaceholder("Minimo 6 caracteres").fill("senha123");
-  68 |     await page.getByRole("button", { name: "Criar Conta Gratis" }).click();
-> 69 |     await expect(page.getByText("already registered")).toBeVisible({ timeout: 20000 });
-     |                                                        ^ Error: expect(locator).toBeVisible() failed
-  70 |   });
-  71 | });
-  72 | 
+  66 |     // Fill CPF (required field) - use a valid test CPF
+  67 |     await page.getByPlaceholder("000.000.000-00").fill("52998224725");
+  68 |     await page.getByPlaceholder("voce@empresa.com").fill("teste@teste.com");
+  69 |     await page.getByPlaceholder("Minimo 6 caracteres").fill("senha123");
+  70 |     await page.getByRole("button", { name: "Criar Conta Gratis" }).click();
+  71 |     // API returns generic error for existing email
+> 72 |     await expect(page.getByText("Erro ao criar conta")).toBeVisible({ timeout: 20000 });
+     |                                                         ^ Error: expect(locator).toBeVisible() failed
+  73 |   });
+  74 | });
+  75 | 
 ```

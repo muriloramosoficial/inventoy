@@ -5,8 +5,18 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Box, Package, Mail, Lock, Eye, EyeOff, User, Building2, CheckCircle, ArrowRight, Shield, BarChart3, Zap } from "lucide-react";
+import { Box, Package, Mail, Lock, Eye, EyeOff, User, Building2, CheckCircle, ArrowRight, Shield, BarChart3, Zap, CreditCard } from "lucide-react";
 import Link from "next/link";
+
+function formatCpf(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  return d.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+}
+
+function formatCnpj(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 14);
+  return d.replace(/(\d{2})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1/$2").replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+}
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -14,6 +24,8 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [cnpj, setCnpj] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -26,12 +38,26 @@ export default function RegisterPage() {
     setError("");
 
     if (!name.trim() || !email.trim() || !password || !companyName.trim()) {
-      setError("Preencha todos os campos");
+      setError("Preencha todos os campos obrigatorios");
       setLoading(false);
       return;
     }
     if (password.length < 6) {
       setError("A senha deve ter no minimo 6 caracteres");
+      setLoading(false);
+      return;
+    }
+
+    const cpfClean = cpf.replace(/\D/g, "");
+    if (cpfClean.length !== 11) {
+      setError("Informe um CPF valido para o responsavel");
+      setLoading(false);
+      return;
+    }
+
+    const cnpjClean = cnpj.replace(/\D/g, "");
+    if (cnpjClean.length > 0 && cnpjClean.length !== 14) {
+      setError("O CNPJ informado invalido. Informe 14 digitos ou deixe em branco");
       setLoading(false);
       return;
     }
@@ -45,6 +71,8 @@ export default function RegisterPage() {
           email: email.trim(),
           password,
           companyName: companyName.trim(),
+          cpf: cpfClean,
+          cnpj: cnpjClean || null,
         }),
       });
       const result = await res.json();
@@ -105,7 +133,7 @@ export default function RegisterPage() {
           <div className="grid grid-cols-3 gap-4">
             {[
               { icon: Package, label: "Teste Gratis", value: "14 dias" },
-              { icon: BarChart3, label: "Produtos", value: "Ate 100" },
+              { icon: BarChart3, label: "Itens", value: "Ate 100" },
               { icon: Shield, label: "Sem riscos", value: "Cancele ja" },
             ].map((item) => (
               <div key={item.label} className="p-4 rounded-lg border border-border-default bg-bg-surface">
@@ -118,13 +146,13 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-12 relative">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-12 relative overflow-y-auto">
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{ backgroundImage: "linear-gradient(rgba(62,207,142,1) 1px, transparent 1px), linear-gradient(90deg, rgba(62,207,142,1) 1px, transparent 1px)", backgroundSize: "48px 48px" }}
         />
 
         <div className={`relative w-full max-w-sm transition-all duration-500 ${mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
-          <div className="flex flex-col items-center mb-8">
+          <div className="flex flex-col items-center mb-6">
             <Link href="/" className="group flex items-center justify-center w-14 h-14 rounded-xl bg-brand-8 mb-4 hover:bg-brand-12 transition-all duration-300 hover:shadow-[0_0_30px_rgba(62,207,142,0.1)]" aria-label="Voltar para pagina inicial">
               <Box className="h-7 w-7 text-brand transition-transform duration-300 group-hover:scale-110" />
             </Link>
@@ -132,28 +160,38 @@ export default function RegisterPage() {
             <p className="text-sm text-text-muted mt-1">Comece seu teste gratis - sem cartao de credito</p>
           </div>
 
-          <form noValidate className="space-y-4">
+          <form noValidate className="space-y-3">
             <div>
-              <Label htmlFor="reg-name">Nome completo</Label>
+              <Label htmlFor="reg-name">Nome completo *</Label>
               <Input id="reg-name" placeholder="Seu nome" value={name} onChange={(e) => setName(e.target.value)} required icon={<User className="h-4 w-4" />} />
             </div>
             <div>
-              <Label htmlFor="reg-company">Nome da empresa</Label>
+              <Label htmlFor="reg-company">Nome da empresa *</Label>
               <Input id="reg-company" placeholder="Minha Empresa Ltda" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required icon={<Building2 className="h-4 w-4" />} />
             </div>
             <div>
-              <Label htmlFor="reg-email">Email</Label>
+              <Label htmlFor="reg-cpf">CPF do responsavel *</Label>
+              <Input id="reg-cpf" placeholder="000.000.000-00" value={cpf} onChange={(e) => setCpf(formatCpf(e.target.value))} required maxLength={14} icon={<CreditCard className="h-4 w-4" />} />
+              <p className="text-[10px] text-text-muted mt-0.5">Documento do responsavel legal pela empresa</p>
+            </div>
+            <div>
+              <Label htmlFor="reg-cnpj">CNPJ da empresa (opcional no plano Free)</Label>
+              <Input id="reg-cnpj" placeholder="00.000.000/0000-00" value={cnpj} onChange={(e) => setCnpj(formatCnpj(e.target.value))} maxLength={18} icon={<Building2 className="h-4 w-4" />} />
+              <p className="text-[10px] text-text-muted mt-0.5">Obrigatorio ao fazer upgrade para planos pagos</p>
+            </div>
+            <div>
+              <Label htmlFor="reg-email">Email *</Label>
               <Input id="reg-email" type="email" placeholder="voce@empresa.com" value={email} onChange={(e) => setEmail(e.target.value)} required icon={<Mail className="h-4 w-4" />} />
             </div>
             <div>
-              <Label htmlFor="reg-password">Senha</Label>
+              <Label htmlFor="reg-password">Senha *</Label>
               <div className="relative">
                 <Input id="reg-password" type={showPassword ? "text" : "password"} placeholder="Minimo 6 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} icon={<Lock className="h-4 w-4" />} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors p-0.5" aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"} tabIndex={-1}>
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              <p className="text-[10px] text-text-muted mt-1">Deve ter no minimo 6 caracteres</p>
+              <p className="text-[10px] text-text-muted mt-0.5">Deve ter no minimo 6 caracteres</p>
             </div>
 
             <p className="text-[11px] text-text-muted leading-relaxed">

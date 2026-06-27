@@ -201,9 +201,9 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Total de Itens", value: metrics ? metrics.total_items.toLocaleString() : "-", accent: "border-t-brand", subtitle: "em estoque" },
+          { label: "Total de Itens", value: metrics ? metrics.total_items.toLocaleString() : "-", accent: "border-t-brand", subtitle: "cadastrados" },
           { label: "Valor Total", value: metrics ? `R$ ${(metrics.total_sale_value / 1000).toFixed(1)}K` : "-", accent: "border-t-brand-info", subtitle: "valor de venda" },
-          { label: "Estoque Baixo", value: metrics ? String(metrics.low_stock_count) : "-", accent: "border-t-brand-warning", subtitle: "alertas ativos" },
+          { label: "Manutencao Pendente", value: metrics ? String(metrics.low_stock_count) : "-", accent: "border-t-brand-warning", subtitle: "pendencias" },
           { label: "Movimentacoes Hoje", value: metrics ? String(metrics.movements_today) : "-", accent: "border-t-brand", subtitle: "hoje" },
         ].map((kpi) => (
           <div key={kpi.label} className={cn("rounded-[6px] bg-bg-surface border border-border-default p-5 border-t-2", kpi.accent)}>
@@ -272,7 +272,7 @@ export default function DashboardPage() {
           <div className="h-full flex flex-col">
             <div className="flex items-center gap-2 mb-4">
               <AlertTriangle className="h-4 w-4 text-brand-warning" />
-              <h3 className="text-sm font-medium text-text-primary">Alertas de Estoque Baixo</h3>
+              <h3 className="text-sm font-medium text-text-primary">Manutencoes Pendentes</h3>
               <TechBadge variant="yellow" className="ml-auto">{lowStockItems.length} itens</TechBadge>
             </div>
             <div className="flex-1 overflow-y-auto space-y-2 -mx-1">

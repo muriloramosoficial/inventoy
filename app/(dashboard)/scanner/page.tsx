@@ -185,7 +185,7 @@ export default function ScannerPage() {
                   <p className="text-sm text-text-secondary">
                     {scanResults[0].status === "found"
                       ? `Produto encontrado: ${scanResults[0].productName}`
-                      : "Produto nao encontrado no estoque"}
+                      : "Item nao encontrado no patrimonio"}
                   </p>
                 </div>
               </div>

@@ -13,7 +13,7 @@ const sections = [
     icon: Shield,
     title: "1. Quem somos",
     content:
-      "A INVENTOY é uma plataforma de gestão de estoque, CNPJ 00.000.000/0001-00. Atuamos como Controladores dos dados pessoais tratados em nossa plataforma. Para assuntos de privacidade, nosso Encarregado (DPO) pode ser contatado pelo email dpo@invetoy.com.br.",
+      "A INVENTOY é uma plataforma de gestão de patrimonio, CNPJ 00.000.000/0001-00. Atuamos como Controladores dos dados pessoais tratados em nossa plataforma. Para assuntos de privacidade, nosso Encarregado (DPO) pode ser contatado pelo email dpo@invetoy.com.br.",
   },
   {
     icon: Database,
@@ -24,7 +24,7 @@ const sections = [
     icon: Eye,
     title: "3. Finalidade do tratamento",
     content:
-      "Seus dados são utilizados para:\n\n• Prestação dos serviços contratados (gestão de estoque)\n• Criação e manutenção da sua conta\n• Processamento de pagamentos de assinaturas\n• Comunicações operacionais (notificações de estoque, faturas)\n• Melhoria contínua da plataforma\n• Cumprimento de obrigações legais e regulatórias",
+      "Seus dados são utilizados para:\n\n• Prestação dos serviços contratados (gestão de patrimonio)\n• Criação e manutenção da sua conta\n• Processamento de pagamentos de assinaturas\n• Comunicações operacionais (notificações de patrimonio, faturas)\n• Melhoria contínua da plataforma\n• Cumprimento de obrigações legais e regulatórias",
   },
   {
     icon: Lock,

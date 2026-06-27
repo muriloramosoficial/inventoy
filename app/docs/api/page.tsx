@@ -60,7 +60,7 @@ const endpoints: Endpoint[] = [
       { name: "name", type: "string", required: true, description: "Nome do produto" },
       { name: "description", type: "string", required: false, description: "Descrição do produto" },
       { name: "category_id", type: "uuid", required: false, description: "ID da categoria" },
-      { name: "min_stock", type: "integer", required: false, description: "Estoque mínimo" },
+      { name: "min_stock", type: "integer", required: false, description: "Quantidade minima" },
       { name: "unit", type: "string", required: false, description: "Unidade (un, kg, g, l, ml, cx, pc)" },
       { name: "price", type: "number", required: false, description: "Preço de venda" },
       { name: "cost", type: "number", required: false, description: "Preço de custo" },
@@ -107,7 +107,7 @@ const endpoints: Endpoint[] = [
     body: [
       { name: "name", type: "string", required: false, description: "Novo nome" },
       { name: "price", type: "number", required: false, description: "Novo preço" },
-      { name: "min_stock", type: "integer", required: false, description: "Novo estoque mínimo" },
+      { name: "min_stock", type: "integer", required: false, description: "Nova quantidade minima" },
     ],
     response: `{
   "data": { "id": "uuid", "name": "Atualizado", ... }
@@ -126,7 +126,7 @@ const endpoints: Endpoint[] = [
     method: "GET",
     path: "/inventory",
     title: "Consultar Inventario",
-    description: "Retorna itens em estoque com produto e localizacao.",
+    description: "Retorna itens com patrimonio e localizacao.",
     auth: true,
     params: [
       { name: "page", type: "integer", required: false, description: "Numero da pagina" },
@@ -169,7 +169,7 @@ const endpoints: Endpoint[] = [
     method: "GET",
     path: "/movements",
     title: "Histórico de Movimentações",
-    description: "Lista movimentações de estoque com filtros.",
+    description: "Lista movimentações de patrimonio com filtros.",
     auth: true,
     params: [
       { name: "page", type: "integer", required: false, description: "Número da página" },
@@ -323,7 +323,7 @@ export default function ApiDocsPage() {
           <h1 className="text-4xl font-bold mb-3">API <span className="text-blue-600">INVENTOY</span></h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Integre seus sistemas com o INVENTOY via API REST. Consulte e gerencie produtos,
-            estoque e movimentações programaticamente.
+            patrimonio e movimentações programaticamente.
           </p>
         </div>
 

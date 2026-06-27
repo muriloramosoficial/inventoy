@@ -95,7 +95,7 @@ export default function LoginPage() {
               <Box className="h-7 w-7 text-brand transition-transform duration-300 group-hover:scale-110" />
             </Link>
             <h1 className="text-xl font-semibold text-text-primary tracking-tight">INVENTOY</h1>
-            <p className="text-sm text-text-muted mt-1">Gestao de Estoque Inteligente</p>
+            <p className="text-sm text-text-muted mt-1">Gestao de Patrimonio Inteligente</p>
           </div>
 
           <form noValidate className="space-y-5">
@@ -161,16 +161,16 @@ export default function LoginPage() {
             <Shield className="h-10 w-10 text-brand" />
           </div>
           <h2 className="text-2xl font-semibold text-text-primary tracking-tight mb-4">
-            Controle total do seu estoque
+            Controle total do seu patrimonio
           </h2>
           <p className="text-text-secondary leading-relaxed mb-8">
-            Dashboard em tempo real, alertas de estoque baixo, movimentacoes auditadas e muito mais.
+            Dashboard em tempo real, historico de movimentacoes, movimentacoes auditadas e muito mais.
           </p>
           <div className="grid grid-cols-3 gap-4">
             {[
               { icon: Package, label: "Produtos", value: "Ilimitados" },
               { icon: BarChart3, label: "Analytics", value: "Em tempo real" },
-              { icon: Shield, label: "Seguranca", value: "RLS nativo" },
+              { icon: Shield, label: "Seguranca", value: "Criptografia" },
             ].map((item) => (
               <div key={item.label} className="p-4 rounded-lg border border-border-default bg-bg-surface">
                 <item.icon className="h-5 w-5 text-brand mx-auto mb-2" />

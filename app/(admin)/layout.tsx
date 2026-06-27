@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { cn } from "@/lib/utils";
-import { Shield, Menu, LogOut } from "lucide-react";
+import { Shield, Menu, User, Settings, LogOut } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -13,6 +14,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [authorized, setAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState<string>("");
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -47,7 +49,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     setMobileOpen(false);
+    setUserMenuOpen(false);
   }, [pathname]);
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
 
   if (loading) {
     return (
@@ -92,7 +101,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           collapsed ? "lg:ml-16" : "lg:ml-56"
         )}
       >
-        <header className="h-14 border-b border-border-default flex items-center justify-between px-4 shrink-0">
+        <header className="h-14 border-b border-border-default bg-bg-secondary flex items-center justify-between px-4 shrink-0">
           <div className="flex items-center gap-3">
             <button
               className="lg:hidden p-1.5 rounded-[4px] text-text-muted hover:text-text-primary hover:bg-bg-surface-hover"
@@ -105,21 +114,47 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <span>Painel Administrativo</span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            {userName && (
-              <span className="text-sm text-text-secondary hidden sm:block">{userName}</span>
-            )}
-            <button
-              onClick={async () => {
-                const supabase = createClient();
-                await supabase.auth.signOut();
-                router.push("/login");
-              }}
-              className="p-1.5 rounded-[4px] text-text-muted hover:text-brand-danger hover:bg-brand-danger-dim transition-colors"
-              title="Sair"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center gap-2 h-9 px-2 rounded-[4px] hover:bg-bg-surface-hover transition-colors"
+              >
+                <div className="h-7 w-7 rounded-full bg-bg-elevated flex items-center justify-center">
+                  <User className="h-3.5 w-3.5 text-text-muted" />
+                </div>
+                <span className="text-sm text-text-secondary hidden lg:inline truncate max-w-[100px]">
+                  {userName}
+                </span>
+              </button>
+
+              {userMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setUserMenuOpen(false)}
+                  />
+                  <div className="absolute right-0 top-full mt-1 z-20 w-48 rounded-[6px] border border-border-default bg-bg-secondary shadow-xl py-1">
+                    <Link
+                      href="/settings"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary transition-colors"
+                    >
+                      <Settings className="h-4 w-4" />
+                      Configuracoes
+                    </Link>
+                    <hr className="border-border-default my-1" />
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm text-brand-danger hover:bg-brand-danger-8 transition-colors"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sair
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </header>
 

@@ -11,6 +11,14 @@ export interface Tenant {
   subscription_status: "active" | "trialing" | "past_due" | "canceled" | "incomplete" | null;
   plan: "free" | "starter" | "pro" | "enterprise";
   locale: "pt-BR";
+  cnpj: string | null;
+  asaas_api_key_sandbox: string | null;
+  asaas_api_key_production: string | null;
+  asaas_env: "sandbox" | "production";
+  asaas_webhook_url_sandbox: string | null;
+  asaas_webhook_url_production: string | null;
+  asaas_webhook_secret_sandbox: string | null;
+  asaas_webhook_secret_production: string | null;
 }
 
 export interface Profile {
@@ -21,6 +29,8 @@ export interface Profile {
   avatar_url: string | null;
   role: "admin" | "manager" | "operator";
   created_at: string;
+  cpf: string | null;
+  is_system_admin?: boolean;
 }
 
 // ─── Inventory Core ───

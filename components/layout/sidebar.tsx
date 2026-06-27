@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  Package,
   ArrowRightLeft,
   Tags,
   MapPin,
@@ -26,15 +25,14 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Painel", href: "/dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
-  { label: "Produtos e Patrimonio", href: "/products", icon: <Box className="h-4 w-4" /> },
-  { label: "Estoque", href: "/inventory", icon: <Package className="h-4 w-4" /> },
+  { label: "Patrimonio", href: "/products", icon: <Box className="h-4 w-4" /> },
   { label: "Movimentacoes", href: "/movements", icon: <ArrowRightLeft className="h-4 w-4" /> },
-  { label: "Leitor de Codigos", href: "/scanner", icon: <ScanLine className="h-4 w-4" /> },
+  { label: "Leitor", href: "/scanner", icon: <ScanLine className="h-4 w-4" /> },
   { label: "Categorias", href: "/categories", icon: <Tags className="h-4 w-4" /> },
   { label: "Locais", href: "/locations", icon: <MapPin className="h-4 w-4" /> },
   { label: "Relatorios", href: "/reports", icon: <BarChart3 className="h-4 w-4" /> },
   { label: "Configuracoes", href: "/settings", icon: <Settings className="h-4 w-4" /> },
-  { label: "Documentacao da API", href: "/settings/api", icon: <Code2 className="h-4 w-4" /> },
+  { label: "API", href: "/settings/api", icon: <Code2 className="h-4 w-4" /> },
 ];
 
 interface SidebarProps {

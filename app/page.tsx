@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Box, BarChart3, Package, ScanLine, CreditCard, Shield, ArrowRight, Check, Menu, X, Users, Cloud, ChevronDown, Star, TrendingUp, Globe, Lock, Activity, Award, Sparkles, Layers, RefreshCw, HeadphonesIcon, BookOpen } from "lucide-react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
 interface StatItem {
   value: number;
@@ -101,48 +102,58 @@ function PricingCard({ name, price, period, desc, features, cta, highlighted, on
 }
 
 const features = [
-  { icon: Package, title: "Controle de Estoque", desc: "Rastreamento em tempo real com suporte a múltiplos depósitos. Saiba exatamente o que você tem e onde está, com alertas inteligentes de estoque baixo.", gradient: true },
-  { icon: ScanLine, title: "Leitor de Código de Barras", desc: "Scanner mobile nativo com câmera. Receba, transfira e faça contagem de estoque direto do chão de fábrica, sem equipamentos extras." },
-  { icon: BarChart3, title: "Analytics e Relatórios", desc: "Dashboard completo com gráficos de movimentação, alertas de estoque baixo, valuation em tempo real e relatórios exportáveis em CSV." },
-  { icon: Users, title: "Controle por Papéis", desc: "Administradores, gerentes e operadores com permissões granulares. Cada usuário vê exatamente o que precisa para seu trabalho." },
-  { icon: CreditCard, title: "Assinatura Mensal Flexível", desc: "Planos a partir de R$ 49/mês com pagamento via PIX, Boleto ou Cartão. Sem taxa de setup. Cancele quando quiser, sem multas.", gradient: true },
-  { icon: Cloud, title: "API REST Integrada", desc: "Integre com seu ERP, site ou sistemas internos via API REST /api/v1. Documentação interativa disponível nos planos Starter e Pro." },
-  { icon: Shield, title: "Segurança Empresarial", desc: "Dados criptografados em trânsito e em repouso. Todas as politicas de acesso sao gerenciadas diretamente pelo banco de dados, com isolamento total entre empresas (multi-tenancy)." },
-  { icon: Layers, title: "Múltiplos Depósitos", desc: "Organize seu estoque por filiais, almoxarifados, prateleiras e lotes. Controle granular de localização de cada item." },
-  { icon: RefreshCw, title: "Tempo Real", desc: "Atualizações instantâneas via Supabase Realtime. Múltiplos usuários veem as mesmas informações simultaneamente, sem refresh." },
+  { icon: Package, title: "Gestao de Patrimonio", desc: "Registre todos os bens da empresa com placa de patrimonio, marca, modelo, numero de serie e responsavel. Saiba onde cada item esta a qualquer momento.", gradient: true },
+  { icon: ScanLine, title: "Leitor de Codigo de Barras", desc: "Scanner mobile nativo com camera. Identifique itens por placa ou codigo de barras direto do chao de fabrica, sem equipamentos extras." },
+  { icon: BarChart3, title: "Relatorios e Auditoria", desc: "Dashboard completo com historico de movimentacoes, quem moveu cada item, quando e para onde. Relatorios exportaveis em CSV." },
+  { icon: Users, title: "Controle por Papels", desc: "Administradores, gerentes e operadores com permissoes granulares. Cada usuario ve exatamente o que precisa para seu trabalho." },
+  { icon: CreditCard, title: "Assinatura Mensal Flexivel", desc: "Planos a partir de R$ 49/mes com pagamento via PIX, Boleto ou Cartao. Sem taxa de setup. Cancele quando quiser, sem multas.", gradient: true },
+  { icon: Cloud, title: "API REST Integrada", desc: "Integre com seu ERP, site ou sistemas internos via API REST. Documentacao interativa disponivel nos planos Starter e Pro." },
+  { icon: Shield, title: "Seguranca Empresarial", desc: "Dados criptografados em transito e em repouso. Cada empresa tem isolamento total de dados, com controle granular de acessos." },
+  { icon: Layers, title: "Multiplas Filiais", desc: "Organize o patrimonio por filiais, departamentos, salas e armazens. Controle granular de localizacao de cada bem." },
+  { icon: RefreshCw, title: "Tempo Real", desc: "Atualizacoes instantaneas em todos os dispositivos. Multiplos usuarios veem as mesmas informacoes simultaneamente, sem refresh." },
 ];
 
 const plans = [
-  { name: "Free", price: "R$ 0", period: "/mês", desc: "Para pequenas equipes começando", features: ["Até 30 produtos", "1 usuário", "Dashboard básico", "Entradas manuais", "Suporte por email"], cta: "Começar Grátis", highlighted: false },
-  { name: "Starter", price: "R$ 49", period: "/mês", desc: "Para negócios em crescimento", features: ["Até 500 produtos", "3 usuários", "Analytics avançado", "Scanner de código", "Exportação CSV", "API REST externa", "Suporte por email"], cta: "Testar Grátis", highlighted: true },
-  { name: "Pro", price: "R$ 149", period: "/mês", desc: "Para operações em escala", features: ["Até 3.000 produtos", "10 usuários", "API REST externa", "Scanner de código", "Relatórios customizados", "Exportação CSV", "Múltiplos depósitos", "Suporte prioritário 24h"], cta: "Testar Grátis", highlighted: false },
-  { name: "Enterprise", price: "Sob consulta", period: "", desc: "Para grandes operações", features: ["Produtos ilimitados", "Usuários ilimitados", "API REST externa", "Scanner de código", "Relatórios customizados", "Múltiplos depósitos", "Onboarding dedicado", "SLA personalizado"], cta: "Falar com Vendas", highlighted: false },
+  { name: "Free", price: "R$ 0", period: "/mês", desc: "Para pequenas equipes começando", features: ["Ate 30 itens", "1 usuario", "Dashboard basico", "Movimentacoes manuais", "Suporte por email"], cta: "Comecar Gratis", highlighted: false },
+  { name: "Starter", price: "R$ 49", period: "/mês", desc: "Para negocios em crescimento", features: ["Ate 500 itens", "3 usuarios", "Relatorios avancados", "Leitor de codigos", "Exportacao CSV", "API REST", "Suporte por email"], cta: "Testar Gratis", highlighted: true },
+  { name: "Pro", price: "R$ 149", period: "/mês", desc: "Para operacoes em escala", features: ["Ate 3.000 itens", "10 usuarios", "API REST", "Leitor de codigos", "Relatorios customizados", "Exportacao CSV", "Multiplas filiais", "Suporte prioritario 24h"], cta: "Testar Gratis", highlighted: false },
+  { name: "Enterprise", price: "Sob consulta", period: "", desc: "Para grandes operacoes", features: ["Itens ilimitados", "Usuarios ilimitados", "API REST", "Leitor de codigos", "Relatorios customizados", "Multiplas filiais", "Onboarding dedicado", "SLA personalizado"], cta: "Falar com Vendas", highlighted: false },
 ];
 
 const testimonials = [
-  { quote: "O INVENTOY transformou nossa gestão de estoque. Reduzimos perdas em 40% no primeiro mês.", author: "Carlos Silva", role: "CEO, LogTech Transportes", stars: 5 },
+  { quote: "O INVENTOY transformou nossa gestão de patrimonio. Reduzimos perdas em 40% no primeiro mês.", author: "Carlos Silva", role: "CEO, LogTech Transportes", stars: 5 },
   { quote: "A API REST foi fundamental para integrar com nosso ERP. A documentação é clara e completa.", author: "Ana Oliveira", role: "CTO, StockPlus Ltda", stars: 5 },
   { quote: "Testei vários sistemas, mas o INVENTOY é o único que oferece scanner nativo sem custo extra.", author: "Ricardo Mendes", role: "Gerente de Operações, Distribuidora ABC", stars: 5 },
 ];
 
 const faqItems = [
-  { q: "Precisa de cartão de crédito para testar?", a: "Não! São 14 dias de teste grátis sem cartão de crédito. Cancele quando quiser." },
-  { q: "Posso migrar meus dados de outro sistema?", a: "Sim! Oferecemos suporte na migração via CSV. Nossa equipe ajuda com a importação dos seus produtos e inventário." },
-  { q: "O scanner de código de barras funciona em qualquer celular?", a: "Sim. O scanner usa a câmera do celular e funciona em qualquer dispositivo com navegador moderno (Chrome, Safari, Edge)." },
-  { q: "Como funciona a segurança dos meus dados?", a: "Cada empresa tem isolamento total de dados. Criptografia em transito (TLS 1.3) e em repouso (AES-256)." },
-  { q: "Posso cancelar minha assinatura a qualquer momento?", a: "Sim! Não temos fidelidade. Você pode cancelar sua assinatura no painel de configurações. O acesso continua até o fim do período já pago." },
-  { q: "A API tem limite de requisições?", a: "Sim, para garantir estabilidade para todos os clientes. O plano Starter tem 60 req/min e o Pro tem 120 req/min." },
+  { q: "Precisa de cartao de credito para testar?", a: "Nao! Sao 14 dias de teste gratis sem cartao de credito. Cancele quando quiser." },
+  { q: "Posso migrar meus dados de outro sistema?", a: "Sim! Oferecemos suporte na migracao via CSV. Nossa equipe ajuda com a importacao dos seus itens e inventario." },
+  { q: "O leitor de codigos funciona em qualquer celular?", a: "Sim. O leitor usa a camera do celular e funciona em qualquer dispositivo com navegador moderno (Chrome, Safari, Edge)." },
+  { q: "Como funciona a seguranca dos meus dados?", a: "Cada empresa tem isolamento total de dados. Criptografia em transito e em repouso." },
+  { q: "Posso cancelar minha assinatura a qualquer momento?", a: "Sim! Nao temos fidelidade. Voce pode cancelar sua assinatura no painel de configuracoes. O acesso continua ate o fim do periodo ja pago." },
+  { q: "A API tem limite de requisicoes?", a: "Sim, para garantir estabilidade para todos os clientes. O plano Starter tem 60 req/min e o Pro tem 120 req/min." },
 ];
 
 export default function LandingPage() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    async function check() {
+      const supabase = createClient();
+      const { data } = await supabase.auth.getUser();
+      setIsLoggedIn(!!data.user);
+    }
+    check();
   }, []);
 
   return (
@@ -165,9 +176,11 @@ export default function LandingPage() {
               <a href="#pricing" className="text-sm text-text-secondary hover:text-text-primary transition-colors">Preços</a>
               <a href="#faq" className="text-sm text-text-secondary hover:text-text-primary transition-colors">FAQ</a>
               <div className="flex items-center gap-3">
-                <Button variant="ghost" size="sm" onClick={() => router.push("/login")}>Entrar</Button>
-                <Button size="sm" onClick={() => router.push("/register")}>
-                  Começar
+                {!isLoggedIn && (
+                  <Button variant="ghost" size="sm" onClick={() => router.push("/login")}>Entrar</Button>
+                )}
+                <Button size="sm" onClick={() => router.push(isLoggedIn ? "/dashboard" : "/register")}>
+                  {isLoggedIn ? "Dashboard" : "Começar"}
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -186,8 +199,12 @@ export default function LandingPage() {
               <a href="#pricing" className="block text-sm text-text-secondary py-2" onClick={() => setMobileMenuOpen(false)}>Preços</a>
               <a href="#faq" className="block text-sm text-text-secondary py-2" onClick={() => setMobileMenuOpen(false)}>FAQ</a>
               <div className="flex flex-col gap-2 pt-2">
-                <Button variant="ghost" onClick={() => router.push("/login")}>Entrar</Button>
-                <Button onClick={() => router.push("/register")}>Começar Grátis</Button>
+                {!isLoggedIn && (
+                  <Button variant="ghost" onClick={() => router.push("/login")}>Entrar</Button>
+                )}
+                <Button onClick={() => router.push(isLoggedIn ? "/dashboard" : "/register")}>
+                  {isLoggedIn ? "Dashboard" : "Começar Grátis"}
+                </Button>
               </div>
             </div>
           </div>
@@ -207,14 +224,14 @@ export default function LandingPage() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-text-primary leading-[1.1]">
-            Gestão de Estoque
+            Gestao de Patrimonio
             <br />
             <span className="text-brand">que sua empresa merece</span>
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-text-secondary max-w-2xl mx-auto leading-relaxed">
             Do almoxarifado a diretoria - uma plataforma completa para 
-            controlar, analisar e otimizar seu estoque em tempo real.
+            controlar, analisar e otimizar seu patrimonio em tempo real.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -253,7 +270,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <StatCard value={300} suffix="+" label="Empresas Ativas" />
-            <StatCard value={50000} suffix="+" label="Produtos Gerenciados" />
+            <StatCard value={50000} suffix="+" label="Itens Gerenciados" />
             <StatCard value={99.9} suffix="%" label="Uptime" />
             <StatCard value={15} suffix="min" label="Tempo de Setup" />
           </div>
@@ -263,12 +280,11 @@ export default function LandingPage() {
       {/* Trust Signals */}
       <section className="py-8 px-4">
         <div className="max-w-6xl mx-auto text-center">
-          <p className="text-xs text-text-muted uppercase tracking-widest mb-6">Construído com tecnologia enterprise-grade</p>
           <div className="flex flex-wrap items-center justify-center gap-8 text-text-muted">
-            <span className="flex items-center gap-2 text-sm"><Shield className="h-4 w-4 text-brand" /> RLS Nativo</span>
-            <span className="flex items-center gap-2 text-sm"><Lock className="h-4 w-4 text-brand" /> TLS 1.3</span>
+            <span className="flex items-center gap-2 text-sm"><Shield className="h-4 w-4 text-brand" /> Dados Protegidos</span>
+            <span className="flex items-center gap-2 text-sm"><Lock className="h-4 w-4 text-brand" /> Criptografia Total</span>
             <span className="flex items-center gap-2 text-sm"><Activity className="h-4 w-4 text-brand" /> 99.9% Uptime</span>
-            <span className="flex items-center gap-2 text-sm"><Cloud className="h-4 w-4 text-brand" /> Next.js 16</span>
+            <span className="flex items-center gap-2 text-sm"><Cloud className="h-4 w-4 text-brand" /> Infraestrutura Cloud</span>
             <span className="flex items-center gap-2 text-sm"><RefreshCw className="h-4 w-4 text-brand" /> Tempo Real</span>
           </div>
         </div>
@@ -282,7 +298,7 @@ export default function LandingPage() {
             <h2 className="text-3xl sm:text-4xl font-semibold text-text-primary tracking-tight">
               Tudo que você precisa para
               <br />
-              <span className="text-brand">gerenciar seu estoque</span>
+              <span className="text-brand">gerenciar seu patrimonio</span>
             </h2>
             <p className="mt-4 text-text-secondary max-w-xl mx-auto">
               Do almoxarifado a diretoria - ferramentas para cada area da sua empresa, 
@@ -313,9 +329,9 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { step: "01", icon: Users, title: "Crie sua conta", desc: "Cadastre-se grátis, sem cartão de crédito. Configure sua empresa e convide sua equipe." },
-              { step: "02", icon: Package, title: "Cadastre produtos", desc: "Adicione produtos manualmente, importe via CSV ou use o scanner de código de barras." },
-              { step: "03", icon: TrendingUp, title: "Gerencie em tempo real", desc: "Acompanhe movimentações, receba alertas de estoque baixo e gere relatórios." },
+              { step: "01", icon: Users, title: "Crie sua conta", desc: "Cadastre-se gratis, sem cartao de credito. Configure sua empresa e convide sua equipe." },
+              { step: "02", icon: Package, title: "Cadastre itens", desc: "Adicione itens manualmente, importe via CSV ou use o leitor de codigos de barras." },
+              { step: "03", icon: TrendingUp, title: "Gerencie em tempo real", desc: "Acompanhe movimentacoes, receba alertas de itens desatualizados e gere relatorios." },
             ].map((item) => (
               <div key={item.step} className="relative p-6 rounded-lg border border-border-default bg-bg-surface">
                 <span className="text-5xl font-bold text-brand-8 absolute top-3 right-4 select-none">{item.step}</span>
@@ -400,10 +416,10 @@ export default function LandingPage() {
             <h2 className="text-3xl sm:text-4xl font-semibold text-text-primary tracking-tight mb-4">
               Pronto para transformar sua
               <br />
-              <span className="text-brand">gestão de estoque?</span>
+              <span className="text-brand">gestão de patrimonio?</span>
             </h2>
             <p className="text-text-secondary mb-8 max-w-lg mx-auto">
-              Junte-se a centenas de empresas que já usam o INVENTOY para controlar seu inventário 
+              Junte-se a centenas de empresas que ja usam o INVENTOY para controlar seu inventario 
               em tempo real. Comece gratis - sem cartao de credito.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -455,7 +471,7 @@ export default function LandingPage() {
                 <span className="text-sm font-semibold text-text-primary">INVENTOY</span>
               </div>
               <p className="text-xs text-text-muted leading-relaxed">
-                Gestão de Estoque Inteligente.<br />
+                Gestão de Patrimonio Inteligente.<br />
                 Feito no Brasil 🇧🇷
               </p>
             </div>

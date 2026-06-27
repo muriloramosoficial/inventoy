@@ -16,6 +16,7 @@ import {
   DollarSign,
   Key,
   LogOut,
+  Webhook,
 } from "lucide-react";
 
 interface NavItem {
@@ -30,8 +31,9 @@ const adminNav: NavItem[] = [
   { label: "Usuarios", href: "/admin/users", icon: <Users className="h-4 w-4" /> },
   { label: "Financeiro", href: "/admin/billing", icon: <DollarSign className="h-4 w-4" /> },
   { label: "Relatorios", href: "/admin/reports", icon: <BarChart3 className="h-4 w-4" /> },
-  { label: "Registro de Atividades", href: "/admin/activity", icon: <Activity className="h-4 w-4" /> },
-  { label: "Chaves de API", href: "/admin/api-keys", icon: <Key className="h-4 w-4" /> },
+  { label: "Atividades", href: "/admin/activity", icon: <Activity className="h-4 w-4" /> },
+  { label: "Asaas", href: "/admin/asaas-config", icon: <Webhook className="h-4 w-4" /> },
+  { label: "Chaves", href: "/admin/api-keys", icon: <Key className="h-4 w-4" /> },
 ];
 
 interface AdminSidebarProps {
@@ -99,14 +101,7 @@ export function AdminSidebar({ collapsed = false, onToggle }: AdminSidebarProps)
       </nav>
 
       {/* Footer */}
-      <div className="p-2 border-t border-border-default space-y-1">
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 rounded-[4px] px-3 py-2.5 text-sm text-text-muted hover:bg-brand-danger-dim hover:text-brand-danger transition-colors w-full"
-        >
-          <LogOut className="h-4 w-4" />
-          {!collapsed && <span>Sair</span>}
-        </button>
+      <div className="p-2 border-t border-border-default">
         <button
           onClick={onToggle}
           className="flex items-center justify-center w-full h-9 rounded-[4px] text-text-muted hover:text-text-primary hover:bg-bg-surface-hover transition-colors"

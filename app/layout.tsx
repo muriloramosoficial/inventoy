@@ -18,10 +18,10 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "INVENTOY — Gestão de Estoque Inteligente",
+  title: "INVENTOY — Gestao de Patrimonio Inteligente",
   description:
-    "Sistema de gestão de inventário multi-tenant para empresas. Dashboard, analytics, API REST e controle de estoque em tempo real.",
-  keywords: ["inventário", "estoque", "gestão", "SaaS", "inventory management"],
+    "Sistema de gestão de patrimonio multi-tenant para empresas. Dashboard, analytics, API REST e controle de patrimonio em tempo real.",
+  keywords: ["inventário", "patrimonio", "gestão", "SaaS", "inventory management"],
   authors: [{ name: "INVENTOY" }],
 };
 

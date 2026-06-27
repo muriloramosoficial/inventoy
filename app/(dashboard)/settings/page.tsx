@@ -6,15 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { TechBadge } from "@/components/tech-badge";
-import { User, Building2, CreditCard, Bell, Check, ChevronRight, QrCode, Code2, ExternalLink, Loader2 } from "lucide-react";
+import { User, Building2, CreditCard, Bell, Check, ChevronRight, QrCode, Code2, ExternalLink, Loader2, Eye, EyeOff, Shield } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, Tenant } from "@/types";
 
 const plans = [
-  { id: "free", name: "Free", price: "R$ 0", description: "Até 30 produtos" },
-  { id: "starter", name: "Starter", price: "R$ 49", description: "Até 500 produtos" },
-  { id: "pro", name: "Professional", price: "R$ 149", description: "Até 3.000 produtos" },
-  { id: "enterprise", name: "Enterprise", price: "Personalizado", description: "Produtos ilimitados" },
+  { id: "free", name: "Free", price: "R$ 0", description: "Ate 30 itens" },
+  { id: "starter", name: "Starter", price: "R$ 49", description: "Ate 500 itens" },
+  { id: "pro", name: "Professional", price: "R$ 149", description: "Ate 3.000 itens" },
+  { id: "enterprise", name: "Enterprise", price: "Personalizado", description: "Itens ilimitados" },
 ];
 
 export default function SettingsPage() {
@@ -22,13 +22,25 @@ export default function SettingsPage() {
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [profileSaving, setProfileSaving] = useState(false);
-  const [tenantSaving, setTenantSaving] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const [profileName, setProfileName] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [profileSaving, setProfileSaving] = useState(false);
+
   const [tenantName, setTenantName] = useState("");
   const [tenantSlug, setTenantSlug] = useState("");
+  const [tenantSaving, setTenantSaving] = useState(false);
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [passwordSaving, setPasswordSaving] = useState(false);
+
+  const [emailSaving, setEmailSaving] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -59,7 +71,8 @@ export default function SettingsPage() {
           setProfile(profileData);
           setTenant(tenantData);
           setProfileName(profileData.name);
-          setProfileEmail(profileData.email);
+          setProfileEmail(user.email || profileData.email);
+          setNewEmail(user.email || profileData.email);
           setTenantName(tenantData.name);
           setTenantSlug(tenantData.slug);
         }
@@ -73,9 +86,15 @@ export default function SettingsPage() {
     return () => { mounted = false; };
   }, []);
 
+  const showSuccess = (msg: string) => {
+    setSuccess(msg);
+    setTimeout(() => setSuccess(null), 4000);
+  };
+
   const handleProfileSave = async () => {
     if (!profile) return;
     setProfileSaving(true);
+    setError(null);
     try {
       const supabase = createClient();
       const { error } = await supabase
@@ -83,6 +102,7 @@ export default function SettingsPage() {
         .update({ name: profileName })
         .eq("id", profile.id);
       if (error) throw error;
+      showSuccess("Perfil atualizado com sucesso");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao atualizar perfil");
     } finally {
@@ -90,9 +110,58 @@ export default function SettingsPage() {
     }
   };
 
+  const handleEmailChange = async () => {
+    if (!newEmail.trim() || newEmail === profileEmail) return;
+    setEmailSaving(true);
+    setError(null);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({ email: newEmail.trim() });
+      if (error) throw error;
+      showSuccess("Email de alteracao enviado. Verifique sua caixa de entrada.");
+      setProfileEmail(newEmail.trim());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao atualizar email");
+      setNewEmail(profileEmail);
+    } finally {
+      setEmailSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (!currentPassword || !newPassword) {
+      setError("Preencha todos os campos de senha");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setError("A nova senha deve ter no minimo 6 caracteres");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError("As senhas nao conferem");
+      return;
+    }
+    setPasswordSaving(true);
+    setError(null);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      showSuccess("Senha atualizada com sucesso");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao atualizar senha");
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
+
   const handleTenantSave = async () => {
     if (!tenant) return;
     setTenantSaving(true);
+    setError(null);
     try {
       const supabase = createClient();
       const { error } = await supabase
@@ -100,6 +169,7 @@ export default function SettingsPage() {
         .update({ name: tenantName })
         .eq("id", tenant.id);
       if (error) throw error;
+      showSuccess("Organizacao atualizada com sucesso");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao atualizar organizacao");
     } finally {
@@ -121,15 +191,23 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h1 className="text-2xl font-semibold text-text-primary tracking-tight">Configurações</h1>
+        <h1 className="text-2xl font-semibold text-text-primary tracking-tight">Configuracoes</h1>
         <p className="text-sm text-text-muted mt-1">
-          Gerencie sua conta, faturamento e preferências
+          Gerencie sua conta, empresa e seguranca
         </p>
       </div>
 
       {error && (
-        <div className="rounded-[4px] border border-brand-danger-30 bg-brand-danger-dim p-3 text-sm text-brand-danger">
-          {error}
+        <div className="rounded-[4px] border border-brand-danger-30 bg-brand-danger-dim p-3 text-sm text-brand-danger flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="text-brand-danger hover:text-brand-danger font-bold ml-2 shrink-0">&times;</button>
+        </div>
+      )}
+
+      {success && (
+        <div className="rounded-[4px] border border-brand-20 bg-brand-dim p-3 text-sm text-brand flex items-center gap-2">
+          <Check className="h-4 w-4 shrink-0" />
+          {success}
         </div>
       )}
 
@@ -140,7 +218,7 @@ export default function SettingsPage() {
             <User className="h-4 w-4 text-text-muted" />
             <CardTitle>Perfil</CardTitle>
           </div>
-          <CardDescription>Suas informações pessoais</CardDescription>
+          <CardDescription>Seus dados pessoais</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -149,12 +227,27 @@ export default function SettingsPage() {
               value={profileName}
               onChange={(e) => setProfileName(e.target.value)}
             />
-            <Input
-              label="Email"
-              type="email"
-              value={profileEmail}
-              disabled
-            />
+            <div>
+              <label className="block text-xs font-medium text-text-secondary mb-1.5 tracking-wide uppercase">
+                Email
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                />
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleEmailChange}
+                  disabled={emailSaving || !newEmail.trim() || newEmail === profileEmail}
+                  className="shrink-0"
+                >
+                  {emailSaving ? "Salvando..." : "Alterar"}
+                </Button>
+              </div>
+            </div>
           </div>
           <Button onClick={handleProfileSave} disabled={profileSaving}>
             {profileSaving ? "Salvando..." : "Salvar"}
@@ -162,12 +255,72 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Organização */}
+      {/* Seguranca - Senha */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Shield className="h-4 w-4 text-text-muted" />
+            <CardTitle>Seguranca</CardTitle>
+          </div>
+          <CardDescription>Altere sua senha de acesso</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-text-secondary mb-1.5 tracking-wide uppercase">
+                Nova Senha
+              </label>
+              <div className="relative">
+                <Input
+                  type={showNewPw ? "text" : "password"}
+                  placeholder="Minimo 6 caracteres"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPw(!showNewPw)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors p-0.5"
+                  tabIndex={-1}
+                >
+                  {showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-text-secondary mb-1.5 tracking-wide uppercase">
+                Confirmar Senha
+              </label>
+              <div className="relative">
+                <Input
+                  type={showCurrentPw ? "text" : "password"}
+                  placeholder="Repita a nova senha"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPw(!showCurrentPw)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors p-0.5"
+                  tabIndex={-1}
+                >
+                  {showCurrentPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+          </div>
+          <Button onClick={handlePasswordChange} disabled={passwordSaving || !newPassword || !confirmPassword}>
+            {passwordSaving ? "Alterando..." : "Alterar Senha"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Organizacao */}
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
             <Building2 className="h-4 w-4 text-text-muted" />
-            <CardTitle>Organização</CardTitle>
+            <CardTitle>Organizacao</CardTitle>
           </div>
           <CardDescription>Dados da sua empresa</CardDescription>
         </CardHeader>
@@ -180,7 +333,7 @@ export default function SettingsPage() {
           <Input
             label="Slug da empresa"
             value={tenantSlug}
-            onChange={(e) => setTenantSlug(e.target.value)}
+            disabled
           />
           <Button onClick={handleTenantSave} disabled={tenantSaving}>
             {tenantSaving ? "Salvando..." : "Salvar"}
@@ -198,13 +351,13 @@ export default function SettingsPage() {
           <CardDescription>Gerencie sua assinatura e forma de pagamento</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {plans.map((plan) => {
               const isCurrent = tenant?.plan === plan.id;
               return (
                 <div
                   key={plan.id}
-                  className={`p-4 rounded-[6px] border transition-all cursor-pointer ${
+                  className={`p-4 rounded-[6px] border transition-all ${
                     isCurrent
                       ? "border-brand bg-brand-5"
                       : "border-border-default bg-bg-surface hover:border-[#444]"
@@ -235,15 +388,15 @@ export default function SettingsPage() {
               <div className="flex items-center gap-3">
                 <QrCode className="h-4 w-4 text-brand" />
                 <div>
-                  <p className="text-sm text-text-primary">PIX, Boleto ou Cartão de Crédito</p>
-                  <p className="text-xs text-text-muted">Assinatura mensal processada com segurança</p>
+                  <p className="text-sm text-text-primary">PIX, Boleto ou Cartao de Credito</p>
+                  <p className="text-xs text-text-muted">Assinatura mensal processada com seguranca</p>
                 </div>
               </div>
               <Button variant="secondary" size="sm" asChild>
-              <Link href="/subscription">
-                Gerenciar <ChevronRight className="h-3.5 w-3.5" />
-              </Link>
-            </Button>
+                <Link href="/subscription">
+                  Gerenciar <ChevronRight className="h-3.5 w-3.5" />
+                </Link>
+              </Button>
             </div>
           </div>
         </CardContent>
@@ -254,9 +407,9 @@ export default function SettingsPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Code2 className="h-4 w-4 text-text-muted" />
-            <CardTitle>API de Integração</CardTitle>
+            <CardTitle>API de Integracao</CardTitle>
           </div>
-          <CardDescription>Acesse a documentação completa da API REST</CardDescription>
+          <CardDescription>Acesse a documentacao completa da API REST</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between p-4 rounded-[4px] border border-border-default bg-bg-surface">
@@ -269,24 +422,29 @@ export default function SettingsPage() {
             </div>
             <Button variant="secondary" size="sm" asChild>
               <Link href="/settings/api">
-                Ver Documentação <ChevronRight className="h-3.5 w-3.5" />
+                Ver Documentacao <ChevronRight className="h-3.5 w-3.5" />
               </Link>
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Notificações */}
+      {/* Notificacoes */}
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
             <Bell className="h-4 w-4 text-text-muted" />
-            <CardTitle>Notificações</CardTitle>
+            <CardTitle>Notificacoes</CardTitle>
           </div>
           <CardDescription>Configure seus alertas</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {["Alerta de estoque baixo", "Itens próximos ao vencimento", "Resumo diário", "Relatório semanal"].map((item) => (
+          {[
+            "Manutencao de patrimonio pendente",
+            "Itens com garantia proxima do vencimento",
+            "Resumo diario de movimentacoes",
+            "Relatorio semanal de inventario"
+          ].map((item) => (
             <label key={item} className="flex items-center justify-between p-2 rounded-[4px] hover:bg-bg-surface-hover cursor-pointer">
               <span className="text-sm text-text-primary">{item}</span>
               <div className="relative">

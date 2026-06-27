@@ -12,6 +12,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
+import { Dialog, DialogFooter } from "@/components/ui/dialog";
 import {
   Users,
   Search,
@@ -20,12 +21,17 @@ import {
   ShieldOff,
   Building2,
   MoreHorizontal,
-  LogIn,
   Check,
   X,
   Key,
+  Ban,
+  UserX,
+  UserCheck,
+  Lock,
+  AlertTriangle,
 } from "lucide-react";
 import { useDropdownMenu, MenuBackdrop, MenuPanel, MenuItem } from "@/hooks/use-dropdown-menu";
+import { Input } from "@/components/ui/input";
 
 interface UserRow {
   id: string;
@@ -33,10 +39,15 @@ interface UserRow {
   email: string;
   role: string;
   is_system_admin: boolean;
+  status: string;
+  suspended_at: string | null;
+  banned_at: string | null;
   created_at: string;
   tenant_id: string;
   tenants?: { name: string; plan: string; slug: string } | null;
 }
+
+type ModalType = "password" | "suspend" | "unsuspend" | "ban" | "unban" | null;
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -47,6 +58,9 @@ export default function AdminUsersPage() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [editingRole, setEditingRole] = useState<string | null>(null);
   const [newRole, setNewRole] = useState("user");
+  const [modalUser, setModalUser] = useState<UserRow | null>(null);
+  const [modalType, setModalType] = useState<ModalType>(null);
+  const [modalValue, setModalValue] = useState("");
   const menu = useDropdownMenu();
 
   useEffect(() => {
@@ -59,7 +73,7 @@ export default function AdminUsersPage() {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, name, email, role, is_system_admin, created_at, tenant_id, tenants(name, plan, slug)")
+        .select("id, name, email, role, is_system_admin, status, suspended_at, banned_at, created_at, tenant_id, tenants(name, plan, slug)")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -115,10 +129,57 @@ export default function AdminUsersPage() {
     }
   };
 
+  const openModal = (u: UserRow, type: ModalType) => {
+    setModalUser(u);
+    setModalType(type);
+    setModalValue("");
+    menu.close();
+  };
+
+  const handleModalAction = async () => {
+    if (!modalUser || !modalType) return;
+    setUpdating(modalUser.id);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/users/manage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: modalType,
+          userId: modalUser.id,
+          newPassword: modalType === "password" ? modalValue : undefined,
+          reason: modalType !== "password" ? modalValue : undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      setSuccess(data.message);
+      setTimeout(() => setSuccess(null), 4000);
+      setModalType(null);
+      setModalUser(null);
+      load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao executar acao");
+    } finally {
+      setUpdating(null);
+    }
+  };
+
   const getTenant = (u: UserRow) => {
     if (!u.tenants || typeof u.tenants !== "object") return { name: "-", plan: "-", slug: "" };
     return u.tenants as { name: string; plan: string; slug: string };
   };
+
+  const getStatusBadge = (u: UserRow) => {
+    if (u.status === "banned") return <TechBadge variant="red">BANIDO</TechBadge>;
+    if (u.status === "suspended") return <TechBadge variant="yellow">SUSPENSO</TechBadge>;
+    return null;
+  };
+
+  const isUserDisabled = (u: UserRow) => u.status === "banned" || u.status === "suspended";
 
   const filtered = users.filter(
     (u) =>
@@ -128,35 +189,42 @@ export default function AdminUsersPage() {
   );
 
   const adminCount = users.filter((u) => u.is_system_admin).length;
+  const activeCount = users.filter((u) => u.status === "active" || !u.status).length;
+  const bannedCount = users.filter((u) => u.status === "banned").length;
+  const suspendedCount = users.filter((u) => u.status === "suspended").length;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold text-text-primary tracking-tight">Usuarios</h1>
         <p className="text-sm text-text-muted mt-1">
-          {loading ? "Carregando..." : `${users.length} usuarios · ${adminCount} admins do sistema`}
+          {loading ? "Carregando..." : `${activeCount} ativos · ${suspendedCount} suspensos · ${bannedCount} banidos · ${adminCount} admins`}
         </p>
       </div>
 
       {/* Legenda - no topo */}
       <div className="rounded-[6px] border border-border-default bg-bg-card p-4">
         <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">Legenda</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
           <div className="flex items-center gap-2">
             <TechBadge variant="gray">USUARIO</TechBadge>
-            <span className="text-text-muted">Acesso basico ao sistema</span>
+            <span className="text-text-muted">Acesso basico</span>
           </div>
           <div className="flex items-center gap-2">
             <TechBadge variant="blue">GERENTE</TechBadge>
-            <span className="text-text-muted">Pode gerenciar equipe</span>
+            <span className="text-text-muted">Gerecia equipe</span>
           </div>
           <div className="flex items-center gap-2">
             <TechBadge variant="green">ADMINISTRADOR</TechBadge>
             <span className="text-text-muted">Admin do tenant</span>
           </div>
           <div className="flex items-center gap-2">
-            <TechBadge variant="red">ADMIN DO SISTEMA</TechBadge>
-            <span className="text-text-muted">Admin do SaaS (area /admin)</span>
+            <TechBadge variant="red">ADMIN SISTEMA</TechBadge>
+            <span className="text-text-muted">Admin SaaS</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <TechBadge variant="yellow">SUSPENSO</TechBadge>
+            <span className="text-text-muted">Temporario</span>
           </div>
         </div>
       </div>
@@ -200,8 +268,9 @@ export default function AdminUsersPage() {
               <TableHead>Usuario</TableHead>
               <TableHead>Empresa</TableHead>
               <TableHead>Plano</TableHead>
-              <TableHead>Funcao (clique para editar)</TableHead>
-              <TableHead>Admin do Sistema</TableHead>
+              <TableHead>Funcao</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Admin</TableHead>
               <TableHead>Cadastro</TableHead>
               <TableHead className="w-10"></TableHead>
             </TableRow>
@@ -209,21 +278,22 @@ export default function AdminUsersPage() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-12">
+                <TableCell colSpan={8} className="text-center py-12">
                   <Loader2 className="h-6 w-6 text-text-muted animate-spin mx-auto" />
                 </TableCell>
               </TableRow>
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-12 text-text-muted">
+                <TableCell colSpan={8} className="text-center py-12 text-text-muted">
                   Nenhum usuario encontrado
                 </TableCell>
               </TableRow>
             ) : (
               filtered.map((u) => {
                 const tenant = getTenant(u);
+                const disabled = isUserDisabled(u);
                 return (
-                  <TableRow key={u.id}>
+                  <TableRow key={u.id} className={disabled ? "opacity-60" : ""}>
                     <TableCell>
                       <div>
                         <p className="font-medium text-text-primary">{u.name || "-"}</p>
@@ -281,8 +351,17 @@ export default function AdminUsersPage() {
                       )}
                     </TableCell>
                     <TableCell>
+                      {u.status === "banned" ? (
+                        <TechBadge variant="red">BANIDO</TechBadge>
+                      ) : u.status === "suspended" ? (
+                        <TechBadge variant="yellow">SUSPENSO</TechBadge>
+                      ) : (
+                        <TechBadge variant="green">ATIVO</TechBadge>
+                      )}
+                    </TableCell>
+                    <TableCell>
                       {u.is_system_admin ? (
-                        <TechBadge variant="red">ADMIN DO SISTEMA</TechBadge>
+                        <TechBadge variant="red">ADMIN</TechBadge>
                       ) : (
                         <span className="text-[10px] text-text-muted">-</span>
                       )}
@@ -309,17 +388,19 @@ export default function AdminUsersPage() {
         </Table>
       </div>
 
-      {/* Dropdown menu using useDropdownMenu hook */}
+      {/* Dropdown menu */}
       {menu.openId && menu.menuPos && (() => {
         const u = users.find((x) => x.id === menu.openId);
         if (!u) return null;
+        const disabled = isUserDisabled(u);
         return (
           <>
             <MenuBackdrop onClick={menu.close} />
-            <MenuPanel menuPos={menu.menuPos} width="w-52">
+            <MenuPanel menuPos={menu.menuPos} width="w-56">
+              {/* Toggle system admin */}
               <MenuItem
                 onClick={() => { menu.close(); toggleAdmin(u.id, u.is_system_admin); }}
-                disabled={updating === u.id}
+                disabled={updating === u.id || disabled}
               >
                 {u.is_system_admin ? (
                   <><ShieldOff className="h-3.5 w-3.5" /> Remover admin do sistema</>
@@ -327,10 +408,146 @@ export default function AdminUsersPage() {
                   <><Shield className="h-3.5 w-3.5" /> Tornar admin do sistema</>
                 )}
               </MenuItem>
+
+              {/* Change password */}
+              <MenuItem
+                onClick={() => openModal(u, "password")}
+                disabled={disabled}
+              >
+                <Lock className="h-3.5 w-3.5" /> Alterar senha
+              </MenuItem>
+
+              {/* Divider */}
+              <div className="border-t border-border-default my-1" />
+
+              {/* Suspend / Unsuspend */}
+              {u.status === "suspended" ? (
+                <MenuItem
+                  onClick={() => openModal(u, "unsuspend")}
+                  className="text-brand hover:bg-brand-dim"
+                >
+                  <UserCheck className="h-3.5 w-3.5" /> Reativar usuario
+                </MenuItem>
+              ) : (
+                <MenuItem
+                  onClick={() => openModal(u, "suspend")}
+                  className="text-brand-warning hover:bg-brand-warning-8"
+                  disabled={disabled}
+                >
+                  <UserX className="h-3.5 w-3.5" /> Suspender
+                </MenuItem>
+              )}
+
+              {/* Ban / Unban */}
+              {u.status === "banned" ? (
+                <MenuItem
+                  onClick={() => openModal(u, "unban")}
+                  className="text-brand hover:bg-brand-dim"
+                >
+                  <UserCheck className="h-3.5 w-3.5" /> Remover banimento
+                </MenuItem>
+              ) : (
+                <MenuItem
+                  onClick={() => openModal(u, "ban")}
+                  className="text-brand-danger hover:bg-brand-danger-dim"
+                  disabled={disabled}
+                >
+                  <Ban className="h-3.5 w-3.5" /> Banir
+                </MenuItem>
+              )}
             </MenuPanel>
           </>
         );
       })()}
+
+      {/* Action Modal */}
+      <Dialog
+        open={!!modalUser && !!modalType}
+        onClose={() => { setModalType(null); setModalUser(null); }}
+        title={
+          modalType === "password" ? "Alterar Senha" :
+          modalType === "suspend" ? "Suspender Usuario" :
+          modalType === "unsuspend" ? "Reativar Usuario" :
+          modalType === "ban" ? "Banir Usuario" :
+          modalType === "unban" ? "Remover Banimento" : ""
+        }
+        description={
+          modalUser ? `${modalUser.name} (${modalUser.email})` : ""
+        }
+      >
+        <div className="space-y-4">
+          {modalType === "password" && (
+            <div>
+              <div className="rounded-[6px] border border-brand-warning-20 bg-brand-warning-8 p-3 text-xs text-brand-warning flex items-start gap-2 mb-4">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>A senha sera alterada imediatamente. O usuario precisara usar a nova senha no proximo login.</span>
+              </div>
+              <Input
+                label="Nova Senha"
+                type="password"
+                placeholder="Minimo 6 caracteres"
+                value={modalValue}
+                onChange={(e) => setModalValue(e.target.value)}
+              />
+            </div>
+          )}
+
+          {(modalType === "suspend" || modalType === "ban") && (
+            <div>
+              <p className="text-sm text-text-secondary mb-3">
+                {modalType === "suspend"
+                  ? "O usuario ficara impossibilitado de acessar o sistema ate que a suspensao seja removida."
+                  : "O usuario sera permanentemente banido do sistema. Esta acao pode ser desfeita posteriormente."}
+              </p>
+              <Input
+                label="Motivo (opcional)"
+                placeholder="Descreva o motivo..."
+                value={modalValue}
+                onChange={(e) => setModalValue(e.target.value)}
+              />
+            </div>
+          )}
+
+          {(modalType === "unsuspend") && (
+            <p className="text-sm text-text-secondary">
+              O usuario voltara a ter acesso normal ao sistema.
+            </p>
+          )}
+
+          {(modalType === "unban") && (
+            <p className="text-sm text-text-secondary">
+              O banimento sera removido e o usuario podera acessar o sistema novamente.
+            </p>
+          )}
+
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => { setModalType(null); setModalUser(null); }} disabled={!!updating}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleModalAction}
+              disabled={updating === modalUser?.id || (modalType === "password" && modalValue.length < 6)}
+              variant={
+                modalType === "ban" ? "primary" :
+                modalType === "suspend" ? "primary" :
+                "primary"
+              }
+              className={
+                modalType === "ban" ? "bg-brand-danger hover:bg-brand-danger text-white" :
+                modalType === "suspend" ? "bg-brand-warning hover:bg-brand-warning text-white" :
+                ""
+              }
+            >
+              {updating === modalUser?.id ? "Aguarde..." :
+                modalType === "password" ? "Alterar Senha" :
+                modalType === "suspend" ? "Suspender" :
+                modalType === "unsuspend" ? "Reativar" :
+                modalType === "ban" ? "Banir" :
+                modalType === "unban" ? "Remover Banimento" : "Confirmar"}
+            </Button>
+          </DialogFooter>
+        </div>
+      </Dialog>
     </div>
   );
 }

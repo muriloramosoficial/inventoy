@@ -47,7 +47,6 @@ const PLANS: Plan[] = [
       "3 usuários",
       "Analytics avançado",
       "Scanner de código",
-      "API externa (/api/v1)",
       "Exportação CSV",
       "Suporte por email",
     ],
@@ -65,7 +64,9 @@ const PLANS: Plan[] = [
       "Até 3.000 produtos",
       "10 usuários",
       "API externa (/api/v1)",
+      "Scanner de código",
       "Relatórios customizados",
+      "Exportação CSV",
       "Suporte prioritário 24h",
       "Múltiplos depósitos",
     ],
@@ -305,7 +306,7 @@ export default function SubscriptionPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-text-secondary">
-            Todos os planos pagos (Starter e Pro) incluem acesso à API REST /api/v1 para consumir
+            O plano Pro inclui acesso completo à API REST /api/v1 para consumir
             produtos, inventário e movimentações. Integre com seu ERP, site ou aplicativo mobile.
           </p>
           <div className="flex flex-wrap gap-2">
@@ -314,8 +315,8 @@ export default function SubscriptionPage() {
             <TechBadge variant="green">GET /api/v1/movements</TechBadge>
           </div>
           <p className="text-xs text-text-muted">
-            {currentPlanName === "free" 
-              ? "Faça upgrade para o plano Starter ou Pro para acessar a API."
+            {currentPlanName === "free" || currentPlanName === "starter"
+              ? "Faça upgrade para o plano Pro para acessar a API."
               : "Sua API key está disponível nas Configurações da conta."}
           </p>
         </CardContent>

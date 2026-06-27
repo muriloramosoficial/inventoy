@@ -1,35 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
+import { authenticateV1Request, V1AuthError } from "@/lib/api/v1-auth";
 
-/**
- * GET /api/v1/inventory
- * List inventory items with product and location details.
- * 
- * Query params:
- *   page, page_size, search, category_id, status (low/critical)
- */
 export async function GET(req: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { searchParams } = new URL(req.url);
+    const { tenantId } = await authenticateV1Request(req);
 
+    const adminClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
     const pageSize = Math.min(parseInt(searchParams.get("page_size") || "50"), 100);
-    const search = searchParams.get("search");
-
-    let query = supabase
-      .from("inventory_items")
-      .select("*, product:products(*), location:locations(*)", { count: "exact" });
-
-    if (search) {
-      query = query.or(`product.name.ilike.%${search}%,product.sku.ilike.%${search}%`);
-    }
-    // Note: low stock filtering should be done client-side using product.min_stock
 
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    const { data, count, error } = await query
+    const { data, count, error } = await adminClient
+      .from("inventory_items")
+      .select(`
+        *,
+        product:products!inner(*),
+        location:locations(*)
+      `, { count: "exact" })
+      .eq("product.tenant_id", tenantId)
       .order("updated_at", { ascending: false })
       .range(from, to);
 
@@ -44,10 +41,13 @@ export async function GET(req: NextRequest) {
         total_pages: Math.ceil((count || 0) / pageSize),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if (error instanceof V1AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("API v1 inventory error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch inventory", message: error.message },
+      { error: "Failed to fetch inventory", message: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

@@ -84,6 +84,9 @@ export async function POST(req: NextRequest) {
       throw upsertError;
     }
 
+    // Get current user for the movement log
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+
     // Log movement
     const { error: movementError } = await supabase.from("movements").insert({
       tenant_id: product.tenant_id,
@@ -93,6 +96,7 @@ export async function POST(req: NextRequest) {
       quantity,
       type,
       notes: notes || null,
+      user_id: currentUser?.id,
     });
 
     if (movementError) {

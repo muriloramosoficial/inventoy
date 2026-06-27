@@ -133,7 +133,7 @@ export default function SubscriptionPage() {
             .single();
           if (tenantData) setTenant(tenantData);
         }
-      } catch (err) {
+      } catch {
         setError("Erro ao carregar dados da assinatura");
       } finally {
         setLoading(false);
@@ -145,13 +145,13 @@ export default function SubscriptionPage() {
   const currentPlanName = tenant?.plan || "free";
   const isOnTrial = tenant?.subscription_status === "trialing";
   const trialDaysLeft = tenant?.created_at
-    ? Math.max(0, 14 - Math.floor((Date.now() - new Date(tenant.created_at).getTime()) / (1000 * 60 * 60 * 24)))
+    ? Math.max(0, 14 - Math.floor((Date.now() - new Date(tenant.created_at).getTime()) / (1000 * 60 * 60 * 24))) // eslint-disable-line react-hooks/purity
     : 0;
 
   const handlePlanSelect = (planId: string) => {
     if (planId === currentPlanName) return;
     if (planId === "enterprise") {
-      window.location.href = "mailto:contato@invetoy.com.br?subject=Plano%20Enterprise%20-%20INVENTOY";
+      window.location.href = "mailto:contato@inventoy.com.br?subject=Plano%20Enterprise%20-%20INVENTOY";
       return;
     }
     if (tenant) {

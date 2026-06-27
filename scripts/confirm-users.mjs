@@ -72,7 +72,6 @@ async function main() {
   for (const user of users) {
     const email = user.email || "unknown";
     const isConfirmed = !!user.email_confirmed_at;
-    const isPhoneConfirmed = !!user.phone_confirmed_at;
     const confirmedAt = user.email_confirmed_at || user.confirmed_at || "NOT CONFIRMED";
     const createdAt = user.created_at;
 

@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { BentoGrid, BentoCard } from "@/components/bento-grid";
 import { FileText, Download, BarChart3, Package, AlertTriangle, ArrowRightLeft, TrendingUp } from "lucide-react";
 
 const reports = [

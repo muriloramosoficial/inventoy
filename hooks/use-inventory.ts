@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Product, InventoryItem, PaginatedResponse } from "@/types";
+import type { Product, InventoryItem } from "@/types";
 
 interface UseInventoryOptions {
   search?: string;
@@ -38,7 +38,18 @@ export function useInventory(options: UseInventoryOptions = {}) {
 
       // Apply filters
       if (options.search) {
-        query = query.textSearch("product.name", options.search);
+        const { data: matchingProducts } = await supabase
+          .from("products")
+          .select("id")
+          .or(`name.ilike.%${options.search}%,sku.ilike.%${options.search}%`);
+
+        if (matchingProducts && matchingProducts.length > 0) {
+          query = query.in("product_id", matchingProducts.map(p => p.id));
+        } else {
+          setData([]);
+          setLoading(false);
+          return;
+        }
       }
 
       if (options.categoryId) {
@@ -46,7 +57,7 @@ export function useInventory(options: UseInventoryOptions = {}) {
       }
 
       // Order by latest
-      query = query.order("updated_at", { ascending: false });
+      query = query.order("inventory_items.updated_at", { ascending: false });
 
       // Paginate
       if (options.page && options.pageSize) {
@@ -68,6 +79,7 @@ export function useInventory(options: UseInventoryOptions = {}) {
   }, [options.search, options.categoryId, options.page, options.pageSize]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchInventory();
   }, [fetchInventory]);
 

@@ -63,16 +63,16 @@ async function checkTables() {
   
   for (const table of tables) {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from(table)
         .select("count", { count: "exact", head: true });
-      
+
       if (error) {
         console.log(`   ${table}: ❌ Not accessible (${error.message})`);
       } else {
         console.log(`   ${table}: ✅ Accessible`);
       }
-    } catch (err) {
+    } catch {
       console.log(`   ${table}: ❌ Error`);
     }
   }

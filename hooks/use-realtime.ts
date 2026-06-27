@@ -20,7 +20,10 @@ export function useRealtimeSubscription({
   enabled = true,
 }: UseRealtimeOptions) {
   const callbackRef = useRef(onChange);
-  callbackRef.current = onChange;
+
+  useEffect(() => {
+    callbackRef.current = onChange;
+  });
 
   const handleChange = useCallback(
     (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {

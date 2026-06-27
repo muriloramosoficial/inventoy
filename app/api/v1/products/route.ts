@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
+import { authenticateV1Request, V1AuthError } from "@/lib/api/v1-auth";
 
-/**
- * GET /api/v1/products
- * List products with pagination and filters.
- * 
- * Headers:
- *   Authorization: Bearer {api_key}
- * 
- * Query params:
- *   page, page_size, search, category_id, active
- */
+function getAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+}
+
 export async function GET(req: NextRequest) {
   try {
-    const supabase = await createClient();
+    const { tenantId } = await authenticateV1Request(req);
+    const adminClient = getAdminClient();
     const { searchParams } = new URL(req.url);
 
     const page = parseInt(searchParams.get("page") || "1");
@@ -22,9 +22,10 @@ export async function GET(req: NextRequest) {
     const categoryId = searchParams.get("category_id");
     const active = searchParams.get("active");
 
-    let query = supabase
+    let query = adminClient
       .from("products")
-      .select("*", { count: "exact" });
+      .select("*", { count: "exact" })
+      .eq("tenant_id", tenantId);
 
     if (search) {
       query = query.or(`name.ilike.%${search}%,sku.ilike.%${search}%,description.ilike.%${search}%`);
@@ -56,25 +57,22 @@ export async function GET(req: NextRequest) {
         total_pages: Math.ceil((count || 0) / pageSize),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if (error instanceof V1AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("API v1 products error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch products", message: error.message },
+      { error: "Failed to fetch products", message: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
 }
 
-/**
- * POST /api/v1/products
- * Create a new product.
- * 
- * Body:
- *   sku, name, description?, category_id?, min_stock?, unit?, price?, cost?
- */
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createClient();
+    const { tenantId } = await authenticateV1Request(req);
+    const adminClient = getAdminClient();
     const body = await req.json();
 
     const { sku, name, description, category_id, min_stock, unit, price, cost } = body;
@@ -86,9 +84,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await adminClient
       .from("products")
       .insert({
+        tenant_id: tenantId,
         sku,
         name,
         description: description || null,
@@ -113,10 +112,13 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ data }, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if (error instanceof V1AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("API v1 products create error:", error);
     return NextResponse.json(
-      { error: "Failed to create product", message: error.message },
+      { error: "Failed to create product", message: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

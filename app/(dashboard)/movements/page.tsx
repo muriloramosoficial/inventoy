@@ -10,7 +10,6 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { TechBadge } from "@/components/tech-badge";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Search,
@@ -21,18 +20,18 @@ import {
   ClipboardList,
   ChevronLeft,
   ChevronRight,
+  Loader2,
+  ClipboardListIcon,
 } from "lucide-react";
+import type { Movement, Product, Location, Profile } from "@/types";
+import { useMovements } from "@/hooks/use-movements";
 
-const movements = [
-  { id: "1", date: "2024-06-26T10:23:00", user: "Carlos Silva", sku: "ELT-001", type: "in" as const, qty: 50, from: "-", to: "A1-S3" },
-  { id: "2", date: "2024-06-26T09:15:00", user: "Ana Oliveira", sku: "MEC-042", type: "out" as const, qty: 5, from: "A2-S1", to: "Produção" },
-  { id: "3", date: "2024-06-25T16:42:00", user: "Carlos Silva", sku: "HID-007", type: "in" as const, qty: 20, from: "-", to: "A3-S2" },
-  { id: "4", date: "2024-06-25T14:30:00", user: "Pedro Santos", sku: "ELT-015", type: "transfer" as const, qty: 10, from: "A1-S6", to: "A1-S8" },
-  { id: "5", date: "2024-06-25T11:05:00", user: "Ana Oliveira", sku: "FERR-09", type: "out" as const, qty: 3, from: "A4-S1", to: "Manutenção" },
-  { id: "6", date: "2024-06-24T15:20:00", user: "Carlos Silva", sku: "QUI-023", type: "count" as const, qty: 34, from: "A5-S3", to: "A5-S3" },
-  { id: "7", date: "2024-06-24T10:00:00", user: "Pedro Santos", sku: "PNE-003", type: "in" as const, qty: 50, from: "-", to: "A6-S2" },
-  { id: "8", date: "2024-06-23T16:15:00", user: "Ana Oliveira", sku: "ELT-002", type: "adjustment" as const, qty: -2, from: "A1-S4", to: "A1-S4" },
-];
+interface MovementWithRelations extends Movement {
+  product?: Product;
+  from_location?: Location | null;
+  to_location?: Location | null;
+  user?: Profile;
+}
 
 function MovementIcon({ type }: { type: string }) {
   switch (type) {
@@ -63,13 +62,13 @@ function formatDate(dateStr: string) {
 }
 
 export default function MovementsPage() {
+  const { data: movements, loading, error } = useMovements({ limit: 100 });
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
 
-  const filtered = movements.filter(
+  const filtered = (movements as MovementWithRelations[]).filter(
     (m) =>
-      m.sku.toLowerCase().includes(search.toLowerCase()) ||
-      m.user.toLowerCase().includes(search.toLowerCase())
+      (m.product?.sku || "").toLowerCase().includes(search.toLowerCase()) ||
+      (m.user?.name || "").toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -80,12 +79,17 @@ export default function MovementsPage() {
             Movements
           </h1>
           <p className="text-sm text-text-muted mt-1">
-            Audit log · All inventory changes recorded chronologically
+            {loading ? "Loading..." : "Audit log · All inventory changes recorded chronologically"}
           </p>
         </div>
       </div>
 
-      {/* Search */}
+      {error && (
+        <div className="rounded-[4px] border border-brand-danger/30 bg-brand-danger-dim p-3 text-sm text-brand-danger">
+          {error}
+        </div>
+      )}
+
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
         <input
@@ -97,7 +101,6 @@ export default function MovementsPage() {
         />
       </div>
 
-      {/* Table */}
       <div className="rounded-[6px] border border-border-default overflow-hidden">
         <Table>
           <TableHeader>
@@ -112,59 +115,89 @@ export default function MovementsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((m) => (
-              <TableRow key={m.id}>
-                <TableCell className="font-mono text-xs text-text-muted whitespace-nowrap">
-                  {formatDate(m.date)}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-bg-elevated flex items-center justify-center">
-                      <span className="text-[10px] font-medium text-text-muted">
-                        {m.user.split(" ").map(n => n[0]).join("")}
-                      </span>
-                    </div>
-                    <span className="text-sm">{m.user}</span>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-12">
+                  <div className="flex flex-col items-center gap-2 text-text-muted">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <p className="text-sm">Loading movements...</p>
                   </div>
-                </TableCell>
-                <TableCell>
-                  <span className="font-mono text-xs text-brand">{m.sku}</span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1.5">
-                    <MovementIcon type={m.type} />
-                    <TechBadge
-                      variant={
-                        m.type === "in" ? "green" :
-                        m.type === "out" ? "red" :
-                        m.type === "transfer" ? "blue" : "yellow"
-                      }
-                    >
-                      {typeLabels[m.type]}
-                    </TechBadge>
-                  </div>
-                </TableCell>
-                <TableCell className="text-right font-mono font-medium">
-                  <span className={
-                    m.type === "in" || m.type === "count" ? "text-brand" :
-                    m.type === "out" ? "text-brand-danger" : "text-text-primary"
-                  }>
-                    {m.qty > 0 ? "+" : ""}{m.qty}
-                  </span>
-                </TableCell>
-                <TableCell className="font-mono text-xs text-text-muted">
-                  {m.from}
-                </TableCell>
-                <TableCell className="font-mono text-xs text-text-muted">
-                  {m.to}
                 </TableCell>
               </TableRow>
-            ))}
+            ) : filtered.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-12">
+                  <div className="flex flex-col items-center gap-2 text-text-muted">
+                    <ClipboardListIcon className="h-8 w-8" />
+                    <p className="text-sm">No movements found</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              filtered.map((m) => {
+                const userName = m.user?.name || "Unknown";
+                const initials = userName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+                const fromName = m.from_location
+                  ? [m.from_location.aisle, m.from_location.shelf].filter(Boolean).join("-S") || m.from_location.name
+                  : "-";
+                const toName = m.to_location
+                  ? [m.to_location.aisle, m.to_location.shelf].filter(Boolean).join("-S") || m.to_location.name
+                  : "-";
+
+                return (
+                  <TableRow key={m.id}>
+                    <TableCell className="font-mono text-xs text-text-muted whitespace-nowrap">
+                      {formatDate(m.created_at)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-bg-elevated flex items-center justify-center">
+                          <span className="text-[10px] font-medium text-text-muted">
+                            {initials}
+                          </span>
+                        </div>
+                        <span className="text-sm">{userName}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-mono text-xs text-brand">{m.product?.sku || "-"}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5">
+                        <MovementIcon type={m.type} />
+                        <TechBadge
+                          variant={
+                            m.type === "in" ? "green" :
+                            m.type === "out" ? "red" :
+                            m.type === "transfer" ? "blue" : "yellow"
+                          }
+                        >
+                          {typeLabels[m.type] || m.type}
+                        </TechBadge>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right font-mono font-medium">
+                      <span className={
+                        m.type === "in" || m.type === "count" ? "text-brand" :
+                        m.type === "out" ? "text-brand-danger" : "text-text-primary"
+                      }>
+                        {m.quantity > 0 ? "+" : ""}{m.quantity}
+                      </span>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-text-muted">
+                      {fromName}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-text-muted">
+                      {toName}
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </div>
 
-      {/* Pagination */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-text-muted">
           Showing {filtered.length} of {movements.length} movements

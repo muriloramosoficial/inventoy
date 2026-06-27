@@ -101,13 +101,16 @@ export async function GET(request: NextRequest) {
       .eq("id", tenant.id);
 
     // Use paymentLink from ASAAS API response, or fallback to constructed URL
+    const asaasBaseUrl = process.env.ASAAS_SANDBOX
+      ? "https://sandbox.asaas.com"
+      : "https://asaas.com";
     const checkoutUrl = subscription.paymentLink ||
-      `https://sandbox.asaas.com/subscription/${subscription.id}/checkout`;
+      `${asaasBaseUrl}/subscription/${subscription.id}/checkout`;
 
     return NextResponse.redirect(checkoutUrl);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[ASAAS Checkout Error]", error);
-    const errorMsg = encodeURIComponent(error?.message || "checkout_failed");
+    const errorMsg = encodeURIComponent(error instanceof Error ? error.message : "checkout_failed");
     return NextResponse.redirect(
       new URL(`/subscription?error=${errorMsg}`, request.url)
     );

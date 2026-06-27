@@ -69,7 +69,7 @@ async function trySupabaseAdminAPI() {
 
   // Method 1: Try to query existing tables
   try {
-    const { data, error } = await supabase.from("tenants").select("count", { count: "exact", head: true });
+    const { error } = await supabase.from("tenants").select("count", { count: "exact", head: true });
     if (!error) {
       console.log("  ✅ 'tenants' table exists via REST API");
       return true;

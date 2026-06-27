@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ScannerInput } from "@/components/scanner-input";
+import { ScanLine } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Package, CheckCircle, AlertCircle, History } from "lucide-react";
 import { TechBadge } from "@/components/tech-badge";
@@ -58,11 +58,15 @@ export default function ScannerPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ScannerInput
-            placeholder="Escaneie ou digite o SKU..."
-            onScan={handleScan}
-            autoFocus
-          />
+          <div className="relative">
+            <input
+              placeholder="Escaneie ou digite o SKU..."
+              onKeyDown={(e) => { if (e.key === "Enter") handleScan((e.target as HTMLInputElement).value); }}
+              autoFocus
+              className="flex h-14 w-full rounded-[4px] border-2 border-dashed bg-bg-primary/50 px-4 py-3 pl-12 text-lg text-text-primary font-mono tracking-wider placeholder:text-text-muted/40 border-brand/30 focus:border-brand focus:ring-0 transition-all duration-200"
+            />
+            <ScanLine className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-brand/60" />
+          </div>
         </CardContent>
       </Card>
 

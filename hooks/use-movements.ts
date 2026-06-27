@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Movement, PaginatedResponse } from "@/types";
+import type { Movement } from "@/types";
 
 interface UseMovementsOptions {
   limit?: number;
@@ -55,6 +55,7 @@ export function useMovements(options: UseMovementsOptions = {}) {
   }, [options.limit, options.productId, options.type]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMovements();
   }, [fetchMovements]);
 

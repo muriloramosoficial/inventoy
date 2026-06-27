@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Box, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 export default function Error({
   error,

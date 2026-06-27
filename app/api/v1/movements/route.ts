@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
+import { authenticateV1Request, V1AuthError } from "@/lib/api/v1-auth";
 
-/**
- * GET /api/v1/movements
- * List inventory movements (audit log).
- * 
- * Query params:
- *   page, page_size, product_id, type, from_date, to_date
- */
 export async function GET(req: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { searchParams } = new URL(req.url);
+    const { tenantId } = await authenticateV1Request(req);
 
+    const adminClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
     const pageSize = Math.min(parseInt(searchParams.get("page_size") || "50"), 100);
     const productId = searchParams.get("product_id");
@@ -20,9 +20,10 @@ export async function GET(req: NextRequest) {
     const fromDate = searchParams.get("from_date");
     const toDate = searchParams.get("to_date");
 
-    let query = supabase
+    let query = adminClient
       .from("movements")
-      .select("*, product:products(name, sku), user:profiles(name, email)", { count: "exact" });
+      .select("*, product:products(name, sku)", { count: "exact" })
+      .eq("tenant_id", tenantId);
 
     if (productId) query = query.eq("product_id", productId);
     if (type) query = query.eq("type", type);
@@ -47,28 +48,29 @@ export async function GET(req: NextRequest) {
         total_pages: Math.ceil((count || 0) / pageSize),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if (error instanceof V1AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("API v1 movements error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch movements", message: error.message },
+      { error: "Failed to fetch movements", message: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
 }
 
-/**
- * POST /api/v1/movements
- * Register a new movement.
- * 
- * Body:
- *   product_id, type (in/out/transfer/adjustment/count), quantity, location_id,
- *   to_location_id (for transfers), notes?, reference?
- */
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createClient();
-    const body = await req.json();
+    const { tenantId } = await authenticateV1Request(req);
 
+    const adminClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    const body = await req.json();
     const { product_id, type, quantity, location_id, to_location_id, notes, reference } = body;
 
     if (!product_id || !type || !quantity || !location_id) {
@@ -86,8 +88,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Get product to verify ownership
-    const { data: product, error: productError } = await supabase
+    const { data: product, error: productError } = await adminClient
       .from("products")
       .select("tenant_id")
       .eq("id", product_id)
@@ -97,23 +98,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (product.tenant_id !== tenantId) {
+      return NextResponse.json({ error: "Product does not belong to this tenant" }, { status: 403 });
     }
 
-    // Get user's profile
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("id", user.id)
-      .single();
-
-    const { data, error } = await supabase
+    const { data, error } = await adminClient
       .from("movements")
       .insert({
-        tenant_id: product.tenant_id,
+        tenant_id: tenantId,
         product_id,
         from_location_id: type === "in" ? null : location_id,
         to_location_id: type === "out" ? null : to_location_id || location_id,
@@ -121,7 +113,7 @@ export async function POST(req: NextRequest) {
         type,
         notes: notes || null,
         reference: reference || null,
-        user_id: profile?.id || user.id,
+        user_id: null,
       })
       .select("*, product:products(name, sku)")
       .single();
@@ -129,10 +121,13 @@ export async function POST(req: NextRequest) {
     if (error) throw error;
 
     return NextResponse.json({ data }, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if (error instanceof V1AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("API v1 movements create error:", error);
     return NextResponse.json(
-      { error: "Failed to create movement", message: error.message },
+      { error: "Failed to create movement", message: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableHeader,
@@ -20,15 +19,10 @@ import {
   Trash2,
   Search,
   Package,
+  Loader2,
 } from "lucide-react";
-
-const initialProducts = [
-  { id: "1", sku: "ELT-001", name: "Resistor 10kΩ", category: "Eletrônicos", description: "Resistor de filme de carbono", unit: "un", cost: 0.08, price: 0.15, stock: 150, min_stock: 50, active: true },
-  { id: "2", sku: "ELT-002", name: "Capacitor 100µF", category: "Eletrônicos", description: "Capacitor eletrolítico", unit: "un", cost: 0.25, price: 0.45, stock: 80, min_stock: 30, active: true },
-  { id: "3", sku: "MEC-042", name: "Parafuso M8 x 30mm", category: "Mecânica", description: "Parafuso de aço inox", unit: "un", cost: 0.03, price: 0.08, stock: 12, min_stock: 100, active: true },
-  { id: "4", sku: "HID-007", name: "Óleo Hidráulico AW68", category: "Hidráulica", description: "Óleo hidráulico para sistemas industriais", unit: "l", cost: 28.00, price: 45.90, stock: 2, min_stock: 20, active: true },
-  { id: "5", sku: "FERR-09", name: "Chave Allen 5mm", category: "Ferramentas", description: "Chave Allen sextavada", unit: "un", cost: 7.50, price: 12.50, stock: 1, min_stock: 15, active: false },
-];
+import { createClient } from "@/lib/supabase/client";
+import type { Product, Category } from "@/types";
 
 const units = [
   { value: "un", label: "Unidade" },
@@ -40,39 +34,156 @@ const units = [
   { value: "pc", label: "Peça" },
 ];
 
-const categories = ["Eletrônicos", "Mecânica", "Hidráulica", "Químicos", "Ferramentas", "Insumos"];
+interface ProductWithCategory extends Product {
+  category?: Category;
+}
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState(initialProducts);
+  const supabase = createClient();
+  const [products, setProducts] = useState<ProductWithCategory[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [stockMap, setStockMap] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<typeof initialProducts[0] | null>(null);
+  const [editingProduct, setEditingProduct] = useState<ProductWithCategory | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const [formSku, setFormSku] = useState("");
+  const [formName, setFormName] = useState("");
+  const [formCategoryId, setFormCategoryId] = useState("");
+  const [formUnit, setFormUnit] = useState("un");
+  const [formDescription, setFormDescription] = useState("");
+  const [formCost, setFormCost] = useState("");
+  const [formPrice, setFormPrice] = useState("");
+  const [formMinStock, setFormMinStock] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const supabase = createClient();
+        const [productsResult, categoriesResult, stockResult] = await Promise.all([
+          supabase.from("products").select(`*, category:categories(*)`),
+          supabase.from("categories").select("*"),
+          supabase.from("inventory_items").select("product_id, quantity"),
+        ]);
+
+        if (productsResult.error) throw productsResult.error;
+        if (categoriesResult.error) throw categoriesResult.error;
+        if (stockResult.error) throw stockResult.error;
+
+        if (mounted) setProducts((productsResult.data || []) as unknown as ProductWithCategory[]);
+        if (mounted) setCategories(categoriesResult.data || []);
+
+        const stock: Record<string, number> = {};
+        (stockResult.data || []).forEach((item) => {
+          stock[item.product_id] = (stock[item.product_id] || 0) + item.quantity;
+        });
+        if (mounted) setStockMap(stock);
+      } catch (err) {
+        if (mounted) setError(err instanceof Error ? err.message : "Failed to fetch products");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    load();
+    return () => { mounted = false; };
+  }, [refreshKey]);
 
   const filtered = products.filter(
     (p) =>
       p.sku.toLowerCase().includes(search.toLowerCase()) ||
       p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.category.toLowerCase().includes(search.toLowerCase())
+      (p.category?.name || "").toLowerCase().includes(search.toLowerCase())
   );
+
+  const resetForm = () => {
+    setFormSku("");
+    setFormName("");
+    setFormCategoryId("");
+    setFormUnit("un");
+    setFormDescription("");
+    setFormCost("");
+    setFormPrice("");
+    setFormMinStock("");
+  };
 
   const openCreate = () => {
     setEditingProduct(null);
+    resetForm();
     setModalOpen(true);
   };
 
-  const openEdit = (p: typeof initialProducts[0]) => {
+  const openEdit = (p: ProductWithCategory) => {
     setEditingProduct(p);
+    setFormSku(p.sku);
+    setFormName(p.name);
+    setFormCategoryId(p.category_id || "");
+    setFormUnit(p.unit);
+    setFormDescription(p.description || "");
+    setFormCost(p.cost?.toString() || "");
+    setFormPrice(p.price?.toString() || "");
+    setFormMinStock(p.min_stock.toString());
     setModalOpen(true);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const payload = {
+        sku: formSku,
+        name: formName,
+        category_id: formCategoryId || null,
+        unit: formUnit,
+        description: formDescription || null,
+        cost: formCost ? parseFloat(formCost) : null,
+        price: formPrice ? parseFloat(formPrice) : null,
+        min_stock: parseInt(formMinStock) || 0,
+      };
+
+      if (editingProduct) {
+        const { error } = await supabase
+          .from("products")
+          .update(payload)
+          .eq("id", editingProduct.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("products").insert(payload);
+        if (error) throw error;
+      }
+
+      setModalOpen(false);
+      setRefreshKey(k => k + 1);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save product");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this product?")) return;
+    try {
+      const { error } = await supabase.from("products").delete().eq("id", id);
+      if (error) throw error;
+      setRefreshKey(k => k + 1);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete product");
+    }
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-text-primary tracking-tight">Products</h1>
           <p className="text-sm text-text-muted mt-1">
-            {filtered.length} products · Manage your product catalog
+            {loading ? "Loading..." : `${filtered.length} products · Manage your product catalog`}
           </p>
         </div>
         <Button onClick={openCreate}>
@@ -81,7 +192,12 @@ export default function ProductsPage() {
         </Button>
       </div>
 
-      {/* Search */}
+      {error && (
+        <div className="rounded-[4px] border border-brand-danger/30 bg-brand-danger-dim p-3 text-sm text-brand-danger">
+          {error}
+        </div>
+      )}
+
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
         <input
@@ -93,7 +209,6 @@ export default function ProductsPage() {
         />
       </div>
 
-      {/* Table */}
       <div className="rounded-[6px] border border-border-default overflow-hidden">
         <Table>
           <TableHeader>
@@ -110,49 +225,16 @@ export default function ProductsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((p) => (
-              <TableRow key={p.id}>
-                <TableCell>
-                  <span className="font-mono text-xs text-brand">{p.sku}</span>
-                </TableCell>
-                <TableCell className="font-medium">{p.name}</TableCell>
-                <TableCell>
-                  <span className="text-xs text-text-muted">{p.category}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="font-mono text-xs text-text-secondary">{p.unit}</span>
-                </TableCell>
-                <TableCell className="text-right font-mono text-sm">
-                  R$ {p.cost.toFixed(2)}
-                </TableCell>
-                <TableCell className="text-right font-mono text-sm">
-                  R$ {p.price.toFixed(2)}
-                </TableCell>
-                <TableCell className="text-right font-mono">
-                  <span className={p.stock <= p.min_stock ? "text-brand-danger" : "text-text-primary"}>
-                    {p.stock}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  {p.active ? (
-                    <TechBadge variant="green">ACTIVE</TechBadge>
-                  ) : (
-                    <TechBadge variant="red">INACTIVE</TechBadge>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-1">
-                    <Button variant="ghost" size="icon-sm" onClick={() => openEdit(p)}>
-                      <Edit3 className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="icon-sm" className="text-brand-danger hover:text-brand-danger">
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center py-12">
+                  <div className="flex flex-col items-center gap-2 text-text-muted">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <p className="text-sm">Loading products...</p>
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
-            {filtered.length === 0 && (
+            ) : filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2 text-text-muted">
@@ -161,12 +243,57 @@ export default function ProductsPage() {
                   </div>
                 </TableCell>
               </TableRow>
+            ) : (
+              filtered.map((p) => {
+                const stock = stockMap[p.id] || 0;
+                return (
+                  <TableRow key={p.id}>
+                    <TableCell>
+                      <span className="font-mono text-xs text-brand">{p.sku}</span>
+                    </TableCell>
+                    <TableCell className="font-medium">{p.name}</TableCell>
+                    <TableCell>
+                      <span className="text-xs text-text-muted">{p.category?.name || "-"}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-mono text-xs text-text-secondary">{p.unit}</span>
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-sm">
+                      R$ {(p.cost ?? 0).toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-sm">
+                      R$ {(p.price ?? 0).toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono">
+                      <span className={stock <= p.min_stock ? "text-brand-danger" : "text-text-primary"}>
+                        {stock}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {p.is_active ? (
+                        <TechBadge variant="green">ACTIVE</TechBadge>
+                      ) : (
+                        <TechBadge variant="red">INACTIVE</TechBadge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="icon-sm" onClick={() => openEdit(p)}>
+                          <Edit3 className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon-sm" className="text-brand-danger hover:text-brand-danger" onClick={() => handleDelete(p.id)}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
       </div>
 
-      {/* Create/Edit Modal */}
       <Dialog
         open={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -178,12 +305,14 @@ export default function ProductsPage() {
             <Input
               label="SKU"
               placeholder="e.g., ELT-001"
-              defaultValue={editingProduct?.sku}
+              value={formSku}
+              onChange={(e) => setFormSku(e.target.value)}
             />
             <Input
               label="Name"
               placeholder="e.g., Resistor 10kΩ"
-              defaultValue={editingProduct?.name}
+              value={formName}
+              onChange={(e) => setFormName(e.target.value)}
             />
           </div>
 
@@ -192,10 +321,14 @@ export default function ProductsPage() {
               <label className="block text-xs font-medium text-text-secondary mb-1.5 tracking-wide uppercase">
                 Category
               </label>
-              <select className="flex h-10 w-full rounded-[4px] border border-border-default bg-bg-surface px-3 py-2 text-sm text-text-primary appearance-none focus:border-brand/40 focus:ring-1 focus:ring-brand/20 transition-colors outline-none">
+              <select
+                value={formCategoryId}
+                onChange={(e) => setFormCategoryId(e.target.value)}
+                className="flex h-10 w-full rounded-[4px] border border-border-default bg-bg-surface px-3 py-2 text-sm text-text-primary appearance-none focus:border-brand/40 focus:ring-1 focus:ring-brand/20 transition-colors outline-none"
+              >
                 <option value="">Select category...</option>
                 {categories.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
               </select>
             </div>
@@ -203,7 +336,11 @@ export default function ProductsPage() {
               <label className="block text-xs font-medium text-text-secondary mb-1.5 tracking-wide uppercase">
                 Unit
               </label>
-              <select className="flex h-10 w-full rounded-[4px] border border-border-default bg-bg-surface px-3 py-2 text-sm text-text-primary appearance-none focus:border-brand/40 focus:ring-1 focus:ring-brand/20 transition-colors outline-none">
+              <select
+                value={formUnit}
+                onChange={(e) => setFormUnit(e.target.value)}
+                className="flex h-10 w-full rounded-[4px] border border-border-default bg-bg-surface px-3 py-2 text-sm text-text-primary appearance-none focus:border-brand/40 focus:ring-1 focus:ring-brand/20 transition-colors outline-none"
+              >
                 {units.map((u) => (
                   <option key={u.value} value={u.value}>{u.label}</option>
                 ))}
@@ -214,7 +351,8 @@ export default function ProductsPage() {
           <Input
             label="Description"
             placeholder="Optional description"
-            defaultValue={editingProduct?.description}
+            value={formDescription}
+            onChange={(e) => setFormDescription(e.target.value)}
           />
 
           <div className="grid grid-cols-2 gap-4">
@@ -223,14 +361,16 @@ export default function ProductsPage() {
               type="number"
               step="0.01"
               placeholder="0.00"
-              defaultValue={editingProduct?.cost}
+              value={formCost}
+              onChange={(e) => setFormCost(e.target.value)}
             />
             <Input
               label="Price (R$)"
               type="number"
               step="0.01"
               placeholder="0.00"
-              defaultValue={editingProduct?.price}
+              value={formPrice}
+              onChange={(e) => setFormPrice(e.target.value)}
             />
           </div>
 
@@ -239,16 +379,17 @@ export default function ProductsPage() {
               label="Min Stock"
               type="number"
               placeholder="0"
-              defaultValue={editingProduct?.min_stock}
+              value={formMinStock}
+              onChange={(e) => setFormMinStock(e.target.value)}
             />
           </div>
 
           <DialogFooter>
-            <Button variant="secondary" onClick={() => setModalOpen(false)}>
+            <Button variant="secondary" onClick={() => setModalOpen(false)} disabled={saving}>
               Cancel
             </Button>
-            <Button onClick={() => setModalOpen(false)}>
-              {editingProduct ? "Save Changes" : "Create Product"}
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? "Saving..." : editingProduct ? "Save Changes" : "Create Product"}
             </Button>
           </DialogFooter>
         </div>

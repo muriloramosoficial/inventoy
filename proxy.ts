@@ -8,16 +8,15 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
+     * Match all request paths except:
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - login (auth page)
-     * - register (signup page)
-     * - auth (auth routes)
-     * - api/webhooks (webhooks are external)
+     * - login, register, auth (auth routes)
+     * - termos, privacidade (legal pages)
+     * - api/ (API routes handle their own auth)
      * - Static files (.svg, .png, .jpg, etc.)
      */
-    "/((?!_next/static|_next/image|favicon.ico|login|register|auth|termos|privacidade|api/webhooks|api/debug|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|login|register|auth|termos|privacidade|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

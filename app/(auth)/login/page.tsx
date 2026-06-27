@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Box, Mail, Lock, Eye, EyeOff, ArrowRight, Shield, BarChart3, Package } from "lucide-react";
+import { Box, Mail, Lock, Eye, EyeOff, Shield, BarChart3, Package } from "lucide-react";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -15,9 +16,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => { setMounted(true); }, []);
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +28,6 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const { createClient } = await import("@/lib/supabase/client");
       const supabase = createClient();
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -49,9 +47,10 @@ export default function LoginPage() {
       }
 
       router.push("/dashboard");
-    } catch (err: any) {
+      router.refresh();
+    } catch (err: unknown) {
       console.error("[Login Error]", err);
-      setError(err?.message || "Erro inesperado. Verifique sua internet.");
+      setError(err instanceof Error ? err.message : "Erro inesperado. Verifique sua internet.");
     } finally {
       setLoading(false);
     }
@@ -62,7 +61,6 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      const { createClient } = await import("@/lib/supabase/client");
       const supabase = createClient();
       const { error: magicError } = await supabase.auth.signInWithOtp({
         email: email.trim(),
@@ -70,8 +68,8 @@ export default function LoginPage() {
       });
       if (magicError) throw magicError;
       alert("Link mágico enviado! Verifique seu email.");
-    } catch (err: any) {
-      setError(err?.message || "Erro ao enviar link mágico");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao enviar link mágico");
     } finally {
       setLoading(false);
     }

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
-import { CommandPalette } from "@/components/command-palette";
+import Image from "next/image";
 import {
   Search,
   ChevronRight,
@@ -30,7 +30,6 @@ export function Topbar({
   onMenuToggle,
 }: TopbarProps) {
   const pathname = usePathname();
-  const [commandOpen, setCommandOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   // Generate breadcrumbs from path
@@ -85,7 +84,6 @@ export function Topbar({
         <div className="flex items-center gap-3">
           {/* Global Search */}
           <button
-            onClick={() => setCommandOpen(true)}
             className="flex items-center gap-2 h-9 px-3 rounded-[4px] border border-border-default bg-bg-surface text-text-muted hover:text-text-primary hover:border-[#444] transition-colors text-sm w-56 lg:w-64"
           >
             <Search className="h-3.5 w-3.5 shrink-0" />
@@ -112,10 +110,12 @@ export function Topbar({
               className="flex items-center gap-2 h-9 px-2 rounded-[4px] hover:bg-bg-surface-hover transition-colors"
             >
               {userAvatar ? (
-                <img
+                <Image
                   src={userAvatar}
                   alt={userName}
-                  className="h-7 w-7 rounded-full object-cover"
+                  width={28}
+                  height={28}
+                  className="rounded-full object-cover"
                 />
               ) : (
                 <div className="h-7 w-7 rounded-full bg-bg-elevated flex items-center justify-center">
@@ -153,8 +153,6 @@ export function Topbar({
         </div>
       </header>
 
-      {/* Command Palette */}
-      <CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} />
     </>
   );
 }

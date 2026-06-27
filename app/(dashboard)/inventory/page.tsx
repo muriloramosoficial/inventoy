@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableHeader,
@@ -20,60 +18,91 @@ import {
   Edit3,
   ArrowRightLeft,
   RotateCcw,
-  Filter,
   SlidersHorizontal,
-  MoreHorizontal,
-  ChevronDown,
   Package,
+  Loader2,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import type { InventoryItem, Product, Location, Category } from "@/types";
 
-// Sample data
-const inventoryItems = [
-  { id: "1", sku: "ELT-001", name: "Resistor 10kΩ", category: "Eletrônicos", totalQty: 150, location: "A1-S3", status: "ok" as const, price: 0.15 },
-  { id: "2", sku: "ELT-002", name: "Capacitor 100µF", category: "Eletrônicos", totalQty: 80, location: "A1-S4", status: "ok" as const, price: 0.45 },
-  { id: "3", sku: "MEC-042", name: "Parafuso M8 x 30mm", category: "Mecânica", totalQty: 12, location: "A2-S1", status: "low" as const, price: 0.08 },
-  { id: "4", sku: "HID-007", name: "Óleo Hidráulico AW68", category: "Hidráulica", totalQty: 2, location: "A3-S2", status: "critical" as const, price: 45.90 },
-  { id: "5", sku: "FERR-09", name: "Chave Allen 5mm", category: "Ferramentas", totalQty: 1, location: "A4-S1", status: "critical" as const, price: 12.50 },
-  { id: "6", sku: "ELT-015", name: "Microcontrolador ATmega328", category: "Eletrônicos", totalQty: 25, location: "A1-S6", status: "ok" as const, price: 18.90 },
-  { id: "7", sku: "QUI-023", name: "Solvente Limpeza", category: "Químicos", totalQty: 34, location: "A5-S3", status: "ok" as const, price: 8.75 },
-  { id: "8", sku: "ALI-008", name: "Lubrificante Food Grade", category: "Insumos", totalQty: 18, location: "A2-S4", status: "low" as const, price: 32.00 },
-  { id: "9", sku: "PNE-003", name: "O-ring 25mm", category: "Vedação", totalQty: 8, location: "A6-S2", status: "low" as const, price: 0.55 },
-  { id: "10", sku: "ELT-022", name: "Display LCD 16x2", category: "Eletrônicos", totalQty: 45, location: "A1-S8", status: "ok" as const, price: 22.30 },
-  { id: "11", sku: "MEC-055", name: "Rolamento 6205ZZ", category: "Mecânica", totalQty: 67, location: "A2-S6", status: "ok" as const, price: 15.40 },
-  { id: "12", sku: "HID-012", name: "Mangueira Hidráulica 1/4", category: "Hidráulica", totalQty: 22, location: "A3-S5", status: "ok" as const, price: 28.60 },
-];
+interface InventoryWithRelations extends InventoryItem {
+  product: Product & { category?: Category };
+  location: Location;
+}
 
-type FilterChip = "all" | "low" | "critical" | "no-movement";
+type FilterChip = "all" | "low" | "critical";
+
+function getStatus(item: InventoryWithRelations): "ok" | "low" | "critical" {
+  if (item.quantity === 0) return "critical";
+  if (item.quantity < (item.product.min_stock || 0)) return "low";
+  return "ok";
+}
+
+function statusBadge(status: "ok" | "low" | "critical") {
+  switch (status) {
+    case "ok":
+      return <TechBadge variant="green">OK</TechBadge>;
+    case "low":
+      return <TechBadge variant="yellow">LOW</TechBadge>;
+    case "critical":
+      return <TechBadge variant="red">CRITICAL</TechBadge>;
+  }
+}
 
 export default function InventoryPage() {
+  const [items, setItems] = useState<InventoryWithRelations[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterChip>("all");
   const [adjustModalOpen, setAdjustModalOpen] = useState(false);
 
-  const filteredItems = inventoryItems.filter((item) => {
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const supabase = createClient();
+        const { data, error: queryError } = await supabase
+          .from("inventory_items")
+          .select(`
+            *,
+            product:products(
+              *,
+              category:categories(*)
+            ),
+            location:locations(*)
+          `);
+
+        if (queryError) throw queryError;
+        if (mounted) setItems((data || []) as unknown as InventoryWithRelations[]);
+      } catch (err) {
+        if (mounted) setError(err instanceof Error ? err.message : "Failed to fetch inventory");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+    load();
+    return () => { mounted = false; };
+  }, []);
+
+  const filteredItems = items.filter((item) => {
+    const status = getStatus(item);
+    const product = item.product;
+
     const matchesSearch =
-      item.sku.toLowerCase().includes(search.toLowerCase()) ||
-      item.name.toLowerCase().includes(search.toLowerCase()) ||
-      item.category.toLowerCase().includes(search.toLowerCase());
+      product.sku.toLowerCase().includes(search.toLowerCase()) ||
+      product.name.toLowerCase().includes(search.toLowerCase()) ||
+      (product.category?.name || "").toLowerCase().includes(search.toLowerCase());
 
     const matchesFilter =
       activeFilter === "all" ||
-      (activeFilter === "low" && item.status === "low") ||
-      (activeFilter === "critical" && item.status === "critical");
+      (activeFilter === "low" && status === "low") ||
+      (activeFilter === "critical" && status === "critical");
 
     return matchesSearch && matchesFilter;
   });
-
-  const statusBadge = (status: "ok" | "low" | "critical") => {
-    switch (status) {
-      case "ok":
-        return <TechBadge variant="green">OK</TechBadge>;
-      case "low":
-        return <TechBadge variant="yellow">LOW</TechBadge>;
-      case "critical":
-        return <TechBadge variant="red">CRITICAL</TechBadge>;
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -84,7 +113,7 @@ export default function InventoryPage() {
             Inventory
           </h1>
           <p className="text-sm text-text-muted mt-1">
-            {filteredItems.length} items · Manage stock levels and locations
+            {loading ? "Loading..." : `${filteredItems.length} items · Manage stock levels and locations`}
           </p>
         </div>
         <Button>
@@ -93,9 +122,14 @@ export default function InventoryPage() {
         </Button>
       </div>
 
+      {error && (
+        <div className="rounded-[4px] border border-brand-danger/30 bg-brand-danger-dim p-3 text-sm text-brand-danger">
+          {error}
+        </div>
+      )}
+
       {/* Filter Bar */}
       <div className="flex items-center gap-3 flex-wrap">
-        {/* Search */}
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
           <input
@@ -107,13 +141,12 @@ export default function InventoryPage() {
           />
         </div>
 
-        {/* Filter chips */}
         <div className="flex items-center gap-2">
-          {[
+          {([
             { key: "all" as FilterChip, label: "All" },
             { key: "low" as FilterChip, label: "Low Stock" },
             { key: "critical" as FilterChip, label: "Critical" },
-          ].map((chip) => (
+          ]).map((chip) => (
             <button
               key={chip.key}
               onClick={() => setActiveFilter(chip.key)}
@@ -149,45 +182,16 @@ export default function InventoryPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredItems.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>
-                  <span className="font-mono text-xs text-brand">{item.sku}</span>
-                </TableCell>
-                <TableCell className="font-medium">{item.name}</TableCell>
-                <TableCell>
-                  <span className="text-xs text-text-muted">{item.category}</span>
-                </TableCell>
-                <TableCell className="text-right font-mono">
-                  {item.totalQty}
-                </TableCell>
-                <TableCell>
-                  <span className="font-mono text-xs text-text-secondary">
-                    {item.location}
-                  </span>
-                </TableCell>
-                <TableCell>{statusBadge(item.status)}</TableCell>
-                <TableCell>
-                  <div className="flex items-center justify-end gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      title="Adjust"
-                      onClick={() => setAdjustModalOpen(true)}
-                    >
-                      <RotateCcw className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="icon-sm" title="Move">
-                      <ArrowRightLeft className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="icon-sm" title="Edit">
-                      <Edit3 className="h-3.5 w-3.5" />
-                    </Button>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-12">
+                  <div className="flex flex-col items-center gap-2 text-text-muted">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <p className="text-sm">Loading inventory...</p>
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
-            {filteredItems.length === 0 && (
+            ) : filteredItems.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2 text-text-muted">
@@ -196,6 +200,52 @@ export default function InventoryPage() {
                   </div>
                 </TableCell>
               </TableRow>
+            ) : (
+              filteredItems.map((item) => {
+                const status = getStatus(item);
+                const product = item.product;
+                const loc = item.location;
+                const locLabel = loc.aisle && loc.shelf ? `${loc.aisle}-S${loc.shelf}` : loc.name;
+
+                return (
+                  <TableRow key={item.id}>
+                    <TableCell>
+                      <span className="font-mono text-xs text-brand">{product.sku}</span>
+                    </TableCell>
+                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell>
+                      <span className="text-xs text-text-muted">{product.category?.name || "-"}</span>
+                    </TableCell>
+                    <TableCell className="text-right font-mono">
+                      {item.quantity}
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-mono text-xs text-text-secondary">
+                        {locLabel}
+                      </span>
+                    </TableCell>
+                    <TableCell>{statusBadge(status)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          title="Adjust"
+                          onClick={() => setAdjustModalOpen(true)}
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon-sm" title="Move">
+                          <ArrowRightLeft className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon-sm" title="Edit">
+                          <Edit3 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
@@ -206,10 +256,9 @@ export default function InventoryPage() {
         open={adjustModalOpen}
         onClose={() => setAdjustModalOpen(false)}
         title="Quick Adjustment"
-        description="ELT-001 · Resistor 10kΩ — Current stock: 150 units at A1-S3"
+        description="Select an item to adjust stock levels"
       >
         <div className="space-y-4">
-          {/* Adjustment type radio */}
           <div className="flex gap-2">
             {[
               { value: "in", label: "Entry" },
@@ -233,7 +282,6 @@ export default function InventoryPage() {
             ))}
           </div>
 
-          {/* Quantity input */}
           <div>
             <label className="block text-xs font-medium text-text-secondary mb-1.5 tracking-wide uppercase">
               Quantity
@@ -246,7 +294,6 @@ export default function InventoryPage() {
             />
           </div>
 
-          {/* Notes (required for exit) */}
           <div>
             <label className="block text-xs font-medium text-text-secondary mb-1.5 tracking-wide uppercase">
               Notes <span className="text-brand-danger">*</span>

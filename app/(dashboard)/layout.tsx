@@ -6,7 +6,6 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { Menu, X } from "lucide-react";
 
 export default function DashboardLayout({
   children,
@@ -20,29 +19,35 @@ export default function DashboardLayout({
   const router = useRouter();
 
   useEffect(() => {
+    let cancelled = false;
     const loadProfile = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/login");
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("name, tenants(name)")
-        .eq("id", user.id)
-        .single();
-
-      if (profile) {
-        setUserName(profile.name);
-        if (profile.tenants && typeof profile.tenants === 'object' && 'name' in profile.tenants) {
-          setTenantName((profile.tenants as { name: string }).name);
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          router.push("/login");
+          return;
         }
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("name, tenants(name)")
+          .eq("id", user.id)
+          .single();
+
+        if (!cancelled && profile) {
+          setUserName(profile.name);
+          if (profile.tenants && typeof profile.tenants === 'object' && 'name' in profile.tenants) {
+            setTenantName((profile.tenants as { name: string }).name);
+          }
+        }
+      } catch {
+        // Profile may not exist yet; use defaults
       }
     };
 
     loadProfile();
+    return () => { cancelled = true; };
   }, [router]);
 
   const handleLogout = async () => {
@@ -55,7 +60,7 @@ export default function DashboardLayout({
 
   // Close mobile menu on route change
   useEffect(() => {
-    setMobileOpen(false);
+    setMobileOpen(false); // eslint-disable-line react-hooks/set-state-in-effect
   }, [pathname]);
 
   return (

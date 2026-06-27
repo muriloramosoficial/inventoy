@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,9 +19,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => { setMounted(true); }, []);
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +38,6 @@ export default function RegisterPage() {
     }
 
     try {
-      const { createClient } = await import("@/lib/supabase/client");
       const supabase = createClient();
 
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({

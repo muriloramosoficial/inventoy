@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { Providers } from "@/components/providers";
-import { CookieConsent } from "@/components/cookie-consent";
+
 
 const inter = Inter({
   variable: "--font-inter",
@@ -46,10 +45,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </head>
       <body className="h-full bg-bg-primary text-text-primary font-sans antialiased">
-        <Providers>
           {children}
-          <CookieConsent />
-        </Providers>
       </body>
     </html>
   );

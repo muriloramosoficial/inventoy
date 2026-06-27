@@ -23,9 +23,11 @@ import {
   Loader2,
   Eye,
   EyeOff,
+  SlidersHorizontal,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/ui/toast";
+import { FilterBar } from "@/components/ui/filter-bar";
 import type { Product, Category } from "@/types";
 
 const conditions = [
@@ -62,6 +64,8 @@ export default function ProductsPage() {
   const [error, setError] = useState<string | null>(null);
   const { error: toastError } = useToast();
   const [search, setSearch] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterCondition, setFilterCondition] = useState("all");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithCategory | null>(null);
   const [saving, setSaving] = useState(false);
@@ -100,15 +104,23 @@ export default function ProductsPage() {
     return () => { mounted = false; };
   }, [refreshKey, showArchived]);
 
-  const filtered = products.filter(
-    (p) =>
+  const categoryOptions = categories.map((c) => ({ value: c.id, label: c.name }));
+  const conditionOptions = conditions.map((c) => ({ value: c.value, label: c.label }));
+
+  const filtered = products.filter((p) => {
+    const matchesSearch =
       (p.asset_tag || "").toLowerCase().includes(search.toLowerCase()) ||
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       (p.brand || "").toLowerCase().includes(search.toLowerCase()) ||
       (p.model || "").toLowerCase().includes(search.toLowerCase()) ||
       (p.serial_number || "").toLowerCase().includes(search.toLowerCase()) ||
-      (p.category?.name || "").toLowerCase().includes(search.toLowerCase())
-  );
+      (p.category?.name || "").toLowerCase().includes(search.toLowerCase());
+
+    const matchesCategory = filterCategory === "all" || p.category_id === filterCategory;
+    const matchesCondition = filterCondition === "all" || p.condition === filterCondition;
+
+    return matchesSearch && matchesCategory && matchesCondition;
+  });
 
   const resetForm = () => setForm({ ...emptyForm });
 
@@ -231,14 +243,40 @@ export default function ProductsPage() {
         </div>
       )}
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
-        <input
-          type="text"
-          placeholder="Buscar por placa, nome, marca, modelo..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full h-10 pl-10 pr-3 rounded-[4px] border border-border-default bg-bg-surface text-sm text-text-primary placeholder:text-text-muted-60 focus:border-brand-40 focus:ring-1 focus:ring-brand-20 transition-colors outline-none"
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
+          <input
+            type="text"
+            placeholder="Buscar por placa, nome, marca, modelo..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full h-10 pl-10 pr-3 rounded-[4px] border border-border-default bg-bg-surface text-sm text-text-primary placeholder:text-text-muted-60 focus:border-brand-40 focus:ring-1 focus:ring-brand-20 transition-colors outline-none"
+          />
+        </div>
+
+        <FilterBar
+          filters={[
+            {
+              key: "category",
+              label: "Categoria",
+              options: categoryOptions,
+            },
+            {
+              key: "condition",
+              label: "Condicao",
+              options: conditionOptions,
+            },
+          ]}
+          activeFilters={{ category: filterCategory, condition: filterCondition }}
+          onFilterChange={(key, value) => {
+            if (key === "category") setFilterCategory(value);
+            if (key === "condition") setFilterCondition(value);
+          }}
+          onClear={() => {
+            setFilterCategory("all");
+            setFilterCondition("all");
+          }}
         />
       </div>
 

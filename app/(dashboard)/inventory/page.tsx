@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/ui/toast";
+import { FilterBar } from "@/components/ui/filter-bar";
 import type { InventoryItem, Product, Location, Category } from "@/types";
 
 interface InventoryWithRelations extends InventoryItem {
@@ -57,7 +58,9 @@ export default function InventoryPage() {
   const { error: toastError } = useToast();
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterChip>("all");
+  const [filterLocation, setFilterLocation] = useState("all");
   const [adjustModalOpen, setAdjustModalOpen] = useState(false);
+  const [locations, setLocations] = useState<Location[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -79,6 +82,10 @@ export default function InventoryPage() {
 
         if (queryError) throw queryError;
         if (mounted) setItems((data || []) as unknown as InventoryWithRelations[]);
+
+        // Also load locations for the filter
+        const { data: locs } = await supabase.from("locations").select("*").is("archived_at", null);
+        if (mounted) setLocations(locs || []);
       } catch (err) {
         if (mounted) setError(err instanceof Error ? err.message : "Erro ao carregar estoque");
       } finally {
@@ -103,7 +110,9 @@ export default function InventoryPage() {
       (activeFilter === "low" && status === "low") ||
       (activeFilter === "critical" && status === "critical");
 
-    return matchesSearch && matchesFilter;
+    const matchesLocation = filterLocation === "all" || item.location_id === filterLocation;
+
+    return matchesSearch && matchesFilter && matchesLocation;
   });
 
   return (
@@ -163,10 +172,23 @@ export default function InventoryPage() {
           ))}
         </div>
 
-        <Button variant="secondary" size="sm">
-          <SlidersHorizontal className="h-3.5 w-3.5" />
-          Filtros
-        </Button>
+        <FilterBar
+          filters={[
+            {
+              key: "location",
+              label: "Localizacao",
+              options: locations.map((l) => ({
+                value: l.id,
+                label: l.aisle && l.shelf ? `${l.name} (${l.aisle}-S${l.shelf})` : l.name,
+              })),
+            },
+          ]}
+          activeFilters={{ location: filterLocation }}
+          onFilterChange={(key, value) => {
+            if (key === "location") setFilterLocation(value);
+          }}
+          onClear={() => setFilterLocation("all")}
+        />
       </div>
 
       {/* Data Table */}

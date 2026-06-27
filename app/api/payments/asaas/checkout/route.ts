@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     // Get profile + tenant
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("id, name, email, tenant_id")
+      .select("id, name, email, cpf, tenant_id")
       .eq("id", user.id)
       .single();
 
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     // Get tenant info
     const { data: tenant, error: tenantError } = await supabase
       .from("tenants")
-      .select("id, name, payment_customer_id")
+      .select("id, name, cnpj, payment_customer_id")
       .eq("id", profile.tenant_id)
       .single();
 
@@ -65,12 +65,14 @@ export async function GET(request: NextRequest) {
     // Create ASAAS customer if doesn't exist
     let asaasCustomerId = tenant.payment_customer_id;
     if (!asaasCustomerId) {
+      const cpfCnpj = profile.cpf || tenant.cnpj || user.user_metadata?.cpf || undefined;
       const customer = await createAsaasCustomer(
         asaasConfig.apiKey,
         asaasConfig.baseUrl,
         {
           name: profile.name,
           email: profile.email,
+          cpfCnpj,
         }
       );
       asaasCustomerId = customer.id;

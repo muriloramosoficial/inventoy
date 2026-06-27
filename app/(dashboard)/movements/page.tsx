@@ -23,6 +23,7 @@ import {
   Loader2,
   ClipboardListIcon,
 } from "lucide-react";
+import { FilterBar } from "@/components/ui/filter-bar";
 import type { Movement, Product, Location, Profile } from "@/types";
 import { useMovements } from "@/hooks/use-movements";
 
@@ -64,12 +65,19 @@ function formatDate(dateStr: string) {
 export default function MovementsPage() {
   const { data: movements, loading, error } = useMovements({ limit: 100 });
   const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState("all");
 
-  const filtered = (movements as MovementWithRelations[]).filter(
-    (m) =>
+  const typeOptions = Object.entries(typeLabels).map(([value, label]) => ({ value, label }));
+
+  const filtered = (movements as MovementWithRelations[]).filter((m) => {
+    const matchesSearch =
       (m.product?.sku || "").toLowerCase().includes(search.toLowerCase()) ||
-      (m.user?.name || "").toLowerCase().includes(search.toLowerCase())
-  );
+      (m.user?.name || "").toLowerCase().includes(search.toLowerCase());
+
+    const matchesType = filterType === "all" || m.type === filterType;
+
+    return matchesSearch && matchesType;
+  });
 
   return (
     <div className="space-y-6">
@@ -90,14 +98,31 @@ export default function MovementsPage() {
         </div>
       )}
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
-        <input
-          type="text"
-          placeholder="Buscar por SKU ou usuario..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full h-10 pl-10 pr-3 rounded-[4px] border border-border-default bg-bg-surface text-sm text-text-primary placeholder:text-text-muted-60 focus:border-brand-40 focus:ring-1 focus:ring-brand-20 transition-colors outline-none"
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
+          <input
+            type="text"
+            placeholder="Buscar por SKU ou usuario..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full h-10 pl-10 pr-3 rounded-[4px] border border-border-default bg-bg-surface text-sm text-text-primary placeholder:text-text-muted-60 focus:border-brand-40 focus:ring-1 focus:ring-brand-20 transition-colors outline-none"
+          />
+        </div>
+
+        <FilterBar
+          filters={[
+            {
+              key: "type",
+              label: "Tipo",
+              options: typeOptions,
+            },
+          ]}
+          activeFilters={{ type: filterType }}
+          onFilterChange={(key, value) => {
+            if (key === "type") setFilterType(value);
+          }}
+          onClear={() => setFilterType("all")}
         />
       </div>
 

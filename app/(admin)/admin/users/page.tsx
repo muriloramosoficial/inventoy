@@ -30,6 +30,7 @@ import {
   UserCheck,
   Lock,
   AlertTriangle,
+  Plus,
 } from "lucide-react";
 import { useDropdownMenu, MenuBackdrop, MenuPanel, MenuItem } from "@/hooks/use-dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -64,6 +65,13 @@ export default function AdminUsersPage() {
   const [modalType, setModalType] = useState<ModalType>(null);
   const [modalValue, setModalValue] = useState("");
   const menu = useDropdownMenu();
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [createEmail, setCreateEmail] = useState("");
+  const [createPassword, setCreatePassword] = useState("");
+  const [createName, setCreateName] = useState("");
+  const [createRole, setCreateRole] = useState("operator");
+  const [createTenantId, setCreateTenantId] = useState("");
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     load();
@@ -261,6 +269,10 @@ export default function AdminUsersPage() {
             className="w-full h-10 pl-10 pr-3 rounded-[6px] border border-border-default bg-bg-surface text-sm text-text-primary placeholder:text-text-muted focus:border-brand-20 focus:ring-1 focus:ring-brand-dim transition-colors outline-none"
           />
         </div>
+        <Button onClick={() => setCreateModalOpen(true)}>
+          <Plus className="h-4 w-4" />
+          Criar Usuario
+        </Button>
         <Button variant="secondary" onClick={load} disabled={loading}>
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Atualizar"}
         </Button>
@@ -478,6 +490,113 @@ export default function AdminUsersPage() {
           </>
         );
       })()}
+
+      {/* Create User Modal */}
+      <Dialog
+        open={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        title="Criar Novo Usuario"
+        description="Crie um novo usuario no sistema"
+      >
+        <div className="space-y-4">
+          <Input
+            label="Nome"
+            placeholder="Nome completo"
+            value={createName}
+            onChange={(e) => setCreateName(e.target.value)}
+          />
+          <Input
+            label="Email"
+            type="email"
+            placeholder="email@exemplo.com"
+            value={createEmail}
+            onChange={(e) => setCreateEmail(e.target.value)}
+          />
+          <Input
+            label="Senha"
+            type="password"
+            placeholder="Minimo 6 caracteres"
+            value={createPassword}
+            onChange={(e) => setCreatePassword(e.target.value)}
+          />
+          <div>
+            <label className="block text-xs font-medium text-text-secondary mb-1.5 tracking-wide uppercase">
+              Funcao
+            </label>
+            <select
+              value={createRole}
+              onChange={(e) => setCreateRole(e.target.value)}
+              className="flex h-10 w-full rounded-[4px] border border-border-default bg-bg-surface px-3 py-2 text-sm text-text-primary appearance-none focus:border-brand-40 focus:ring-1 focus:ring-brand-20 transition-colors outline-none"
+            >
+              <option value="user">Usuario</option>
+              <option value="operator">Operador</option>
+              <option value="manager">Gerente</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-text-secondary mb-1.5 tracking-wide uppercase">
+              Empresa (Tenant ID)
+            </label>
+            <Input
+              placeholder="ID do tenant (deixe em branco para selecionar depois)"
+              value={createTenantId}
+              onChange={(e) => setCreateTenantId(e.target.value)}
+            />
+            <p className="text-[10px] text-text-muted mt-1">
+              Se nao preenchido, o usuario sera criado sem vinculo a uma empresa.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setCreateModalOpen(false)} disabled={creating}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!createName || !createEmail || !createPassword) {
+                  toastError("Preencha nome, email e senha");
+                  return;
+                }
+                if (createPassword.length < 6) {
+                  toastError("A senha deve ter no minimo 6 caracteres");
+                  return;
+                }
+                setCreating(true);
+                try {
+                  const res = await fetch("/api/admin/users/create", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      email: createEmail,
+                      password: createPassword,
+                      name: createName,
+                      role: createRole,
+                      tenantId: createTenantId || undefined,
+                    }),
+                  });
+                  const data = await res.json();
+                  if (!res.ok) throw new Error(data.error);
+                  toastSuccess(data.message);
+                  setCreateModalOpen(false);
+                  setCreateEmail("");
+                  setCreatePassword("");
+                  setCreateName("");
+                  setCreateRole("operator");
+                  setCreateTenantId("");
+                  load();
+                } catch (err) {
+                  toastError(err instanceof Error ? err.message : "Erro ao criar usuario");
+                } finally {
+                  setCreating(false);
+                }
+              }}
+              disabled={creating}
+            >
+              {creating ? "Criando..." : "Criar Usuario"}
+            </Button>
+          </DialogFooter>
+        </div>
+      </Dialog>
 
       {/* Action Modal */}
       <Dialog

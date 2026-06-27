@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Box, Mail, Lock, Eye, EyeOff, User, Building2, CheckCircle, ArrowRight } from "lucide-react";
+import { Box, Package, Mail, Lock, Eye, EyeOff, User, Building2, CheckCircle, ArrowRight, Shield, BarChart3, Zap } from "lucide-react";
 import Link from "next/link";
 
 export default function RegisterPage() {
@@ -54,9 +54,7 @@ export default function RegisterPage() {
       if (signUpError) {
         if (signUpError.message.includes("already registered")) {
           setError("Este email já está cadastrado. Faça login.");
-        } else {
-          setError(signUpError.message);
-        }
+        } else setError(signUpError.message);
         return;
       }
 
@@ -70,14 +68,8 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="relative min-h-screen bg-bg-primary flex items-center justify-center p-4 overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
-          style={{
-            backgroundImage: "linear-gradient(rgba(62,207,142,1) 1px, transparent 1px), linear-gradient(90deg, rgba(62,207,142,1) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-          }}
-        />
-        <div className={`relative w-full max-w-sm text-center transition-all duration-500 ${mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
+      <div className="min-h-screen bg-bg-primary flex items-center justify-center p-4">
+        <div className="w-full max-w-sm text-center">
           <div className="flex items-center justify-center w-16 h-16 rounded-xl bg-brand/[0.08] mx-auto mb-6">
             <CheckCircle className="h-8 w-8 text-brand" />
           </div>
@@ -89,8 +81,7 @@ export default function RegisterPage() {
             Verifique sua caixa de entrada e spam. Clique no link para ativar sua conta e começar a usar o INVENTOY.
           </p>
           <Button variant="outline" onClick={() => router.push("/login")}>
-            Ir para o login
-            <ArrowRight className="h-4 w-4" />
+            Ir para o login <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -98,94 +89,99 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-bg-primary flex flex-col items-center justify-center p-4 overflow-hidden">
-      {/* Background grid */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage: "linear-gradient(rgba(62,207,142,1) 1px, transparent 1px), linear-gradient(90deg, rgba(62,207,142,1) 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
-        }}
-      />
-      <div className="absolute top-1/4 -right-32 w-96 h-96 rounded-full bg-brand/5 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-brand/3 blur-3xl pointer-events-none" />
+    <div className="min-h-screen bg-bg-primary flex">
+      {/* Left side - Illustration/Branding */}
+      <div className="hidden lg:flex flex-1 bg-bg-secondary border-r border-border-default items-center justify-center p-12 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          style={{ backgroundImage: "linear-gradient(rgba(62,207,142,1) 1px, transparent 1px), linear-gradient(90deg, rgba(62,207,142,1) 1px, transparent 1px)", backgroundSize: "32px 32px" }}
+        />
+        <div className="absolute top-1/3 -right-32 w-96 h-96 rounded-full bg-brand/5 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 -left-32 w-80 h-80 rounded-full bg-brand/3 blur-3xl pointer-events-none" />
 
-      <div className={`relative w-full max-w-sm transition-all duration-500 ${mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
-          <Link
-            href="/"
-            className="group flex items-center justify-center w-14 h-14 rounded-xl bg-brand/[0.08] mb-4 hover:bg-brand/[0.12] transition-all duration-300 hover:shadow-[0_0_30px_rgba(62,207,142,0.1)]"
-            aria-label="Voltar para página inicial"
-          >
-            <Box className="h-7 w-7 text-brand transition-transform duration-300 group-hover:scale-110" />
-          </Link>
-          <h1 className="text-xl font-semibold text-text-primary tracking-tight">Criar Conta</h1>
-          <p className="text-sm text-text-muted mt-1">Comece seu teste grátis — sem cartão de crédito</p>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleRegister} className="space-y-4">
-          <div>
-            <Label htmlFor="reg-name">Nome completo</Label>
-            <Input id="reg-name" placeholder="Seu nome" value={name} onChange={(e) => setName(e.target.value)} required icon={<User className="h-4 w-4" />} />
+        <div className="relative text-center max-w-md">
+          <div className="w-20 h-20 rounded-2xl bg-brand/[0.08] flex items-center justify-center mx-auto mb-8">
+            <Zap className="h-10 w-10 text-brand" />
           </div>
-
-          <div>
-            <Label htmlFor="reg-company">Nome da empresa</Label>
-            <Input id="reg-company" placeholder="Minha Empresa Ltda" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required icon={<Building2 className="h-4 w-4" />} />
-          </div>
-
-          <div>
-            <Label htmlFor="reg-email">Email</Label>
-            <Input id="reg-email" type="email" placeholder="voce@empresa.com" value={email} onChange={(e) => setEmail(e.target.value)} required icon={<Mail className="h-4 w-4" />} />
-          </div>
-
-          <div>
-            <Label htmlFor="reg-password">Senha</Label>
-            <div className="relative">
-              <Input id="reg-password" type={showPassword ? "text" : "password"} placeholder="Mínimo 6 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} icon={<Lock className="h-4 w-4" />} />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors p-0.5"
-                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                tabIndex={-1}
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-            <p className="text-[10px] text-text-muted mt-1">Deve ter no mínimo 6 caracteres</p>
-          </div>
-
-          <p className="text-[11px] text-text-muted leading-relaxed">
-            Ao criar sua conta, você aceita nossos{" "}
-            <Link href="/termos" className="text-brand hover:underline">Termos de Serviço</Link> e{" "}
-            <Link href="/privacidade" className="text-brand hover:underline">Política de Privacidade</Link>.
+          <h2 className="text-2xl font-semibold text-text-primary tracking-tight mb-4">
+            Comece grátis, cresça quando quiser
+          </h2>
+          <p className="text-text-secondary leading-relaxed mb-8">
+            14 dias de teste grátis. Sem cartão de crédito. Cancele quando quiser.
           </p>
-
-          {error && (
-            <div className="text-sm p-3 rounded-[4px] border border-brand-danger/20 bg-brand-danger-dim text-brand-danger" role="alert">
-              {error}
-            </div>
-          )}
-
-          <Button type="submit" className="w-full h-11" loading={loading}>
-            {loading ? "Criando conta..." : "Criar Conta Grátis"}
-          </Button>
-
-          <div className="text-center">
-            <span className="text-sm text-text-muted">Já tem conta? </span>
-            <Link href="/login" className="text-sm text-brand hover:text-brand-hover transition-colors font-medium">
-              Fazer login
-            </Link>
+          <div className="grid grid-cols-3 gap-4">
+            {[
+              { icon: Package, label: "Teste Grátis", value: "14 dias" },
+              { icon: BarChart3, label: "Produtos", value: "Até 100" },
+              { icon: Shield, label: "Sem riscos", value: "Cancele já" },
+            ].map((item) => (
+              <div key={item.label} className="p-4 rounded-lg border border-border-default bg-bg-surface">
+                <item.icon className="h-5 w-5 text-brand mx-auto mb-2" />
+                <p className="text-xs font-medium text-text-primary">{item.label}</p>
+                <p className="text-[10px] text-text-muted">{item.value}</p>
+              </div>
+            ))}
           </div>
-        </form>
+        </div>
       </div>
 
-      {/* ASAAS badge */}
-      <p className="relative mt-8 text-[10px] text-text-muted text-center">
-        Pagamentos processados por ASAAS • PIX, Boleto e Cartão
-      </p>
+      {/* Right side - Form */}
+      <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-12 relative">
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          style={{ backgroundImage: "linear-gradient(rgba(62,207,142,1) 1px, transparent 1px), linear-gradient(90deg, rgba(62,207,142,1) 1px, transparent 1px)", backgroundSize: "48px 48px" }}
+        />
+
+        <div className={`relative w-full max-w-sm transition-all duration-500 ${mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
+          {/* Logo */}
+          <div className="flex flex-col items-center mb-8">
+            <Link href="/" className="group flex items-center justify-center w-14 h-14 rounded-xl bg-brand/[0.08] mb-4 hover:bg-brand/[0.12] transition-all duration-300 hover:shadow-[0_0_30px_rgba(62,207,142,0.1)]" aria-label="Voltar para página inicial">
+              <Box className="h-7 w-7 text-brand transition-transform duration-300 group-hover:scale-110" />
+            </Link>
+            <h1 className="text-xl font-semibold text-text-primary tracking-tight">Criar Conta</h1>
+            <p className="text-sm text-text-muted mt-1">Comece seu teste grátis — sem cartão de crédito</p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleRegister} className="space-y-4">
+            <div>
+              <Label htmlFor="reg-name">Nome completo</Label>
+              <Input id="reg-name" placeholder="Seu nome" value={name} onChange={(e) => setName(e.target.value)} required icon={<User className="h-4 w-4" />} />
+            </div>
+            <div>
+              <Label htmlFor="reg-company">Nome da empresa</Label>
+              <Input id="reg-company" placeholder="Minha Empresa Ltda" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required icon={<Building2 className="h-4 w-4" />} />
+            </div>
+            <div>
+              <Label htmlFor="reg-email">Email</Label>
+              <Input id="reg-email" type="email" placeholder="voce@empresa.com" value={email} onChange={(e) => setEmail(e.target.value)} required icon={<Mail className="h-4 w-4" />} />
+            </div>
+            <div>
+              <Label htmlFor="reg-password">Senha</Label>
+              <div className="relative">
+                <Input id="reg-password" type={showPassword ? "text" : "password"} placeholder="Mínimo 6 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} icon={<Lock className="h-4 w-4" />} />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors p-0.5" aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"} tabIndex={-1}>
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              <p className="text-[10px] text-text-muted mt-1">Deve ter no mínimo 6 caracteres</p>
+            </div>
+
+            <p className="text-[11px] text-text-muted leading-relaxed">
+              Ao criar sua conta, você aceita nossos{" "}
+              <Link href="/termos" className="text-brand hover:underline">Termos de Serviço</Link> e{" "}
+              <Link href="/privacidade" className="text-brand hover:underline">Política de Privacidade</Link>.
+            </p>
+
+            {error && (<div className="text-sm p-3 rounded-[4px] border border-brand-danger/20 bg-brand-danger-dim text-brand-danger" role="alert">{error}</div>)}
+
+            <Button type="submit" className="w-full h-11" loading={loading}>{loading ? "Criando conta..." : "Criar Conta Grátis"}</Button>
+
+            <div className="text-center">
+              <span className="text-sm text-text-muted">Já tem conta? </span>
+              <Link href="/login" className="text-sm text-brand hover:text-brand-hover transition-colors font-medium">Fazer login</Link>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

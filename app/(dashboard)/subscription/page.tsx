@@ -31,10 +31,10 @@ const PLANS: Plan[] = [
     price: "R$ 0",
     period: "/mês",
     description: "Para pequenas equipes começando",
-    features: ["Até 100 produtos", "1 usuário", "Dashboard básico", "Entradas manuais"],
+    features: ["Até 30 produtos", "1 usuário", "Dashboard básico", "Entradas manuais"],
     highlighted: false,
     cta: "Atual",
-    limits: { products: 100, users: 1 },
+    limits: { products: 30, users: 1 },
   },
   {
     id: "starter",
@@ -43,17 +43,17 @@ const PLANS: Plan[] = [
     period: "/mês",
     description: "Para negócios em crescimento",
     features: [
-      "Até 1.000 produtos",
-      "5 usuários",
+      "Até 500 produtos",
+      "3 usuários",
       "Analytics avançado",
       "Scanner de código",
       "API externa (/api/v1)",
       "Exportação CSV",
-      "Suporte ASAAS (PIX/Boleto)",
+      "Suporte por email",
     ],
     highlighted: true,
     cta: "Assinar",
-    limits: { products: 1000, users: 5 },
+    limits: { products: 500, users: 3 },
   },
   {
     id: "pro",
@@ -62,8 +62,8 @@ const PLANS: Plan[] = [
     period: "/mês",
     description: "Para operações em escala",
     features: [
-      "Até 10.000 produtos",
-      "Usuários ilimitados",
+      "Até 3.000 produtos",
+      "10 usuários",
       "API externa (/api/v1)",
       "Relatórios customizados",
       "Suporte prioritário 24h",
@@ -71,7 +71,7 @@ const PLANS: Plan[] = [
     ],
     highlighted: false,
     cta: "Assinar",
-    limits: { products: 10000, users: -1 },
+    limits: { products: 3000, users: 10 },
   },
 ];
 
@@ -272,7 +272,7 @@ export default function SubscriptionPage() {
             <CreditCard className="h-4 w-4 text-text-muted" />
             <CardTitle>Forma de Pagamento</CardTitle>
           </div>
-          <CardDescription>Pagamentos processados via ASAAS em Reais (R$)</CardDescription>
+          <CardDescription>Sua assinatura é processada com segurança por nosso gateway de pagamentos</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-[4px] border border-border-default bg-bg-surface">
@@ -280,12 +280,12 @@ export default function SubscriptionPage() {
               <QrCode className="h-5 w-5 text-brand" />
               <div>
                 <p className="text-sm text-text-primary">PIX, Boleto ou Cartão de Crédito</p>
-                <p className="text-xs text-text-muted">Suporte a pagamentos via ASAAS • Segurança e praticidade</p>
+                <p className="text-xs text-text-muted">Assinatura mensal processada com segurança • Pagamento facilitado</p>
               </div>
             </div>
             <Button variant="secondary" size="sm" asChild>
-              <Link href="https://asaas.com" target="_blank">
-                Configurar <ChevronRight className="h-3.5 w-3.5" />
+              <Link href="/settings">
+                Gerenciar <ChevronRight className="h-3.5 w-3.5" />
               </Link>
             </Button>
           </div>

@@ -30,7 +30,7 @@ const sections = [
     icon: Shield,
     title: "4. Planos e Pagamentos",
     content:
-      "Oferecemos planos Free, Starter e Pro com funcionalidades e limites específicos. Os pagamentos são processados via ASAAS (PIX, Boleto e Cartão de Crédito) em Reais (R$). O cancelamento pode ser solicitado a qualquer momento, sem multas. O reembolso segue a política de cada meio de pagamento.",
+      "Oferecemos planos Free, Starter e Pro com funcionalidades e limites específicos. Os pagamentos são processados com segurança em Reais (R$), com suporte a PIX, Boleto e Cartão de Crédito. O cancelamento pode ser solicitado a qualquer momento, sem multas. O reembolso segue a política de cada meio de pagamento.",
   },
   {
     icon: Shield,

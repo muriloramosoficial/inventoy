@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Box,
+  Code2,
 } from "lucide-react";
 
 interface NavItem {
@@ -32,6 +33,7 @@ const navItems: NavItem[] = [
   { label: "Localizações", href: "/locations", icon: <MapPin className="h-4 w-4" /> },
   { label: "Relatórios", href: "/reports", icon: <BarChart3 className="h-4 w-4" /> },
   { label: "Configurações", href: "/settings", icon: <Settings className="h-4 w-4" /> },
+  { label: "API Docs", href: "/settings/api", icon: <Code2 className="h-4 w-4" /> },
 ];
 
 interface SidebarProps {

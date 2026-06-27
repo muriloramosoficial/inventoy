@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Box, BarChart3, Package, ScanLine, CreditCard, Shield, ArrowRight, Check, Menu, X, QrCode, Barcode } from "lucide-react";
+import { Box, BarChart3, Package, ScanLine, CreditCard, Shield, ArrowRight, Check, Menu, X, Barcode, Users, Cloud, Zap } from "lucide-react";
 import Link from "next/link";
 
 const features = [
@@ -19,23 +19,23 @@ const features = [
   },
   {
     icon: BarChart3,
-    title: "Analytics",
-    desc: "Dashboard completo com gráficos de movimentação, alertas de estoque baixo e relatórios de valuation.",
+    title: "Analytics e Relatórios",
+    desc: "Dashboard completo com gráficos de movimentação, alertas de estoque baixo, valuation e relatórios exportáveis.",
   },
   {
-    icon: QrCode,
-    title: "Pagamentos via PIX",
-    desc: "Integração com ASAAS. Receba pagamentos por PIX, Boleto e Cartão de Crédito — tudo em R$.",
+    icon: Users,
+    title: "Controle por Papéis",
+    desc: "Administradores, gerentes e operadores com permissões granulares. Cada um vê apenas o que precisa.",
   },
   {
     icon: CreditCard,
     title: "Assinatura Mensal",
-    desc: "Planos a partir de R$ 49/mês. Sem taxa de setup. Cancele quando quiser.",
+    desc: "Planos a partir de R$ 49/mês com pagamento via PIX, Boleto ou Cartão. Sem taxa de setup. Cancele quando quiser.",
   },
   {
-    icon: Shield,
-    title: "Segurança Multi-empresa",
-    desc: "Row Level Security garante que cada empresa veja apenas seus dados. Proteção nível bancário.",
+    icon: Cloud,
+    title: "API REST Integrada",
+    desc: "Integre com seu ERP ou sistemas internos via API /api/v1. Disponível nos planos Starter e Pro.",
   },
 ];
 
@@ -45,7 +45,7 @@ const plans = [
     price: "R$ 0",
     period: "/mês",
     desc: "Para pequenas equipes começando",
-    features: ["Até 100 produtos", "1 usuário", "Dashboard básico", "Entradas manuais"],
+    features: ["Até 30 produtos", "1 usuário", "Dashboard básico", "Entradas manuais"],
     cta: "Começar Grátis",
     highlighted: false,
   },
@@ -54,7 +54,15 @@ const plans = [
     price: "R$ 49",
     period: "/mês",
     desc: "Para negócios em crescimento",
-    features: ["Até 1.000 produtos", "5 usuários", "Analytics avançado", "Scanner de código", "Exportação CSV", "Suporte ASAAS (PIX/Boleto)"],
+    features: [
+      "Até 500 produtos",
+      "3 usuários",
+      "Analytics avançado",
+      "Scanner de código",
+      "API REST externa (/api/v1)",
+      "Exportação CSV",
+      "Suporte por email",
+    ],
     cta: "Testar Grátis",
     highlighted: true,
   },
@@ -63,7 +71,14 @@ const plans = [
     price: "R$ 149",
     period: "/mês",
     desc: "Para operações em escala",
-    features: ["Até 10.000 produtos", "Usuários ilimitados", "API access", "Relatórios customizados", "Suporte prioritário"],
+    features: [
+      "Até 3.000 produtos",
+      "10 usuários",
+      "API REST externa (/api/v1)",
+      "Relatórios customizados",
+      "Suporte prioritário 24h",
+      "Múltiplos depósitos",
+    ],
     cta: "Testar Grátis",
     highlighted: false,
   },
@@ -147,8 +162,8 @@ export default function LandingPage() {
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-text-secondary max-w-2xl mx-auto leading-relaxed">
-            Controle seu inventário em tempo real com suporte a PIX, Boleto e Cartão.
-            Do chão de fábrica ao boardroom — ferramentas para cada papel na sua empresa.
+            Controle seu inventário em tempo real. Do almoxarifado ao boardroom —
+            ferramentas para cada papel na sua empresa.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -217,7 +232,7 @@ export default function LandingPage() {
               Preços simples e transparentes
             </h2>
             <p className="mt-4 text-text-secondary max-w-xl mx-auto">
-              Comece grátis, upgrade conforme crescer. Pagamento por PIX, Boleto ou Cartão.
+              Comece grátis, upgrade conforme crescer. Pagamento via PIX, Boleto ou Cartão.
             </p>
           </div>
 
@@ -299,8 +314,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-6">
             <Link href="/termos" className="text-xs text-text-muted hover:text-text-primary transition-colors">Termos</Link>
             <Link href="/privacidade" className="text-xs text-text-muted hover:text-text-primary transition-colors">Privacidade</Link>
-            <span className="text-xs text-text-muted">ASAAS</span>
-            <span className="text-xs text-text-muted">Supabase</span>
+            <Link href="/register" className="text-xs text-text-muted hover:text-text-primary transition-colors">Cadastro</Link>
           </div>
         </div>
       </footer>

@@ -1,16 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { TechBadge } from "@/components/tech-badge";
-import { User, Building2, CreditCard, Bell, Check, ChevronRight, QrCode } from "lucide-react";
+import { User, Building2, CreditCard, Bell, Check, ChevronRight, QrCode, Code2, ExternalLink } from "lucide-react";
 
 const plans = [
-  { id: "free", name: "Free", price: "R$ 0", description: "Até 100 produtos", current: true },
-  { id: "starter", name: "Starter", price: "R$ 49", description: "Até 1.000 produtos", current: false },
-  { id: "pro", name: "Professional", price: "R$ 149", description: "Até 10.000 produtos", current: false },
+  { id: "free", name: "Free", price: "R$ 0", description: "Até 30 produtos", current: true },
+  { id: "starter", name: "Starter", price: "R$ 49", description: "Até 500 produtos", current: false },
+  { id: "pro", name: "Professional", price: "R$ 149", description: "Até 3.000 produtos", current: false },
   { id: "enterprise", name: "Enterprise", price: "Personalizado", description: "Produtos ilimitados", current: false },
 ];
 
@@ -102,14 +103,43 @@ export default function SettingsPage() {
               <div className="flex items-center gap-3">
                 <QrCode className="h-4 w-4 text-brand" />
                 <div>
-                  <p className="text-sm text-text-primary">ASAAS — PIX, Boleto ou Cartão</p>
-                  <p className="text-xs text-text-muted">Pagamentos processados via ASAAS em R$</p>
+                  <p className="text-sm text-text-primary">PIX, Boleto ou Cartão de Crédito</p>
+                  <p className="text-xs text-text-muted">Assinatura mensal processada com segurança</p>
                 </div>
               </div>
-              <Button variant="secondary" size="sm">
-                Configurar <ChevronRight className="h-3.5 w-3.5" />
-              </Button>
+              <Button variant="secondary" size="sm" asChild>
+              <Link href="/subscription">
+                Gerenciar <ChevronRight className="h-3.5 w-3.5" />
+              </Link>
+            </Button>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* API Access */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Code2 className="h-4 w-4 text-text-muted" />
+            <CardTitle>API de Integração</CardTitle>
+          </div>
+          <CardDescription>Acesse a documentação completa da API REST</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between p-4 rounded-[4px] border border-border-default bg-bg-surface">
+            <div className="flex items-center gap-3">
+              <ExternalLink className="h-5 w-5 text-brand" />
+              <div>
+                <p className="text-sm text-text-primary">API /api/v1</p>
+                <p className="text-xs text-text-muted">Integre com seu ERP, site ou aplicativo mobile</p>
+              </div>
+            </div>
+            <Button variant="secondary" size="sm" asChild>
+              <Link href="/settings/api">
+                Ver Documentação <ChevronRight className="h-3.5 w-3.5" />
+              </Link>
+            </Button>
           </div>
         </CardContent>
       </Card>

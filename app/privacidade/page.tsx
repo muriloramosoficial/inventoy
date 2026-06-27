@@ -17,13 +17,13 @@ const sections = [
   {
     icon: Database,
     title: "2. Dados que coletamos",
-    content: "Coletamos os seguintes dados pessoais:\n\n• Dados de cadastro: nome completo, email, nome da empresa, cargo\n• Dados de acesso: endereço IP, agente do usuário, cookies necessários\n• Dados de uso: interações com a plataforma, funcionalidades acessadas\n• Dados de pagamento: processados exclusivamente pela ASAAS (PIX, Boleto, Cartão) — não armazenamos dados de cartão de crédito\n\nNão coletamos dados sensíveis (origem racial, convicção religiosa, saúde, dados genéticos ou biométricos).",
+    content: "Coletamos os seguintes dados pessoais:\n\n• Dados de cadastro: nome completo, email, nome da empresa, cargo\n• Dados de acesso: endereço IP, agente do usuário, cookies necessários\n• Dados de uso: interações com a plataforma, funcionalidades acessadas\n• Dados de pagamento: processados por gateway de pagamentos terceirizado (PIX, Boleto, Cartão) — não armazenamos dados de cartão de crédito\n\nNão coletamos dados sensíveis (origem racial, convicção religiosa, saúde, dados genéticos ou biométricos).",
   },
   {
     icon: Eye,
     title: "3. Finalidade do tratamento",
     content:
-      "Seus dados são utilizados para:\n\n• Prestação dos serviços contratados (gestão de estoque)\n• Criação e manutenção da sua conta\n• Processamento de pagamentos via ASAAS\n• Comunicações operacionais (notificações de estoque, faturas)\n• Melhoria contínua da plataforma\n• Cumprimento de obrigações legais e regulatórias",
+      "Seus dados são utilizados para:\n\n• Prestação dos serviços contratados (gestão de estoque)\n• Criação e manutenção da sua conta\n• Processamento de pagamentos de assinaturas\n• Comunicações operacionais (notificações de estoque, faturas)\n• Melhoria contínua da plataforma\n• Cumprimento de obrigações legais e regulatórias",
   },
   {
     icon: Lock,
@@ -35,7 +35,7 @@ const sections = [
     icon: RefreshCw,
     title: "5. Compartilhamento de dados",
     content:
-      "Compartilhamos seus dados apenas com:\n\n• ASAAS: processamento de pagamentos (PIX, Boleto, Cartão)\n• Supabase: hospedagem do banco de dados (Provedor nos EUA — safeguards contratuais)\n• Vercel: hospedagem da aplicação\n\nNão vendemos seus dados pessoais para terceiros. Todos os provedores contratados possuem conformidade com a LGPD.",
+      "Compartilhamos seus dados apenas com:\n\n• Gateway de pagamentos: processamento de assinaturas (PIX, Boleto, Cartão)\n• Supabase: hospedagem do banco de dados (Provedor nos EUA — safeguards contratuais)\n• Vercel: hospedagem da aplicação\n\nNão vendemos seus dados pessoais para terceiros. Todos os provedores contratados possuem conformidade com a LGPD.",
   },
   {
     icon: Trash2,

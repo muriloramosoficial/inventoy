@@ -1,0 +1,54 @@
+╔══════════════════════════════════════════════════════════════╗
+║              INVENTOY — Credenciais de Acesso               ║
+║         Última atualização: 26 de junho de 2026             ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ADMIN MASTER (Dono do Sistema)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Email:    murilo@invetoy.com.br
+  Senha:    Admin@123
+  Papel:    admin (master)
+  Empresa:  INVENTOY
+
+  → Acesso total ao sistema. Gerencia planos, usuários e dados.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  DEMO ADMIN (Administrador da Empresa Demo)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Email:    admin@empresa.com.br
+  Senha:    Demo@123
+  Papel:    admin
+  Empresa:  Empresa Demo Ltda
+
+  → Acesso completo aos dados da empresa demo.
+  → Pode gerenciar produtos, categorias, localizações e usuários.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  FUNCIONÁRIO (Operador da Empresa Demo)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Email:    funcionario@empresa.com.br
+  Senha:    Func@123
+  Papel:    operator
+  Empresa:  Empresa Demo Ltda
+
+  → Acesso limitado: visualizar produtos, registrar movimentações.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  IMPORTANTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ⚠️  Antes de usar, execute o SQL schema no Supabase:
+     1. Acesse https://supabase.com/dashboard/project/mjkeznlmhtskrekywnfg/sql/new
+     2. Cole o conteúdo de lib/supabase-schema.sql
+     3. Execute
+     4. Depois rode: node scripts/setup-db.mjs
+
+  💡 Dica: Altere as senhas após o primeiro acesso.

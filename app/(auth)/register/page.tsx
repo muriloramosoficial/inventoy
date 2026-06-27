@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Box, Mail, Lock, Eye, EyeOff, User, Building2, CheckCircle } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Box, Mail, Lock, Eye, EyeOff, User, Building2, CheckCircle, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export default function RegisterPage() {
@@ -17,27 +18,22 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const validatePassword = (pass: string) => {
-    if (pass.length < 6) return "A senha deve ter no mínimo 6 caracteres";
-    return "";
-  };
+  useEffect(() => { setMounted(true); }, []);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    // Client-side validation
     if (!name.trim() || !email.trim() || !password || !companyName.trim()) {
       setError("Preencha todos os campos");
       setLoading(false);
       return;
     }
-
-    const pwError = validatePassword(password);
-    if (pwError) {
-      setError(pwError);
+    if (password.length < 6) {
+      setError("A senha deve ter no mínimo 6 caracteres");
       setLoading(false);
       return;
     }
@@ -50,10 +46,7 @@ export default function RegisterPage() {
         email: email.trim(),
         password,
         options: {
-          data: {
-            name: name.trim(),
-            tenant_name: companyName.trim(),
-          },
+          data: { name: name.trim(), tenant_name: companyName.trim() },
           emailRedirectTo: `${window.location.origin}/callback`,
         },
       });
@@ -68,7 +61,7 @@ export default function RegisterPage() {
       }
 
       setSuccess(true);
-    } catch (err) {
+    } catch {
       setError("Erro de conexão. Verifique sua internet.");
     } finally {
       setLoading(false);
@@ -77,20 +70,27 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-bg-primary flex items-center justify-center p-4">
-        <div className="w-full max-w-sm text-center">
+      <div className="relative min-h-screen bg-bg-primary flex items-center justify-center p-4 overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          style={{
+            backgroundImage: "linear-gradient(rgba(62,207,142,1) 1px, transparent 1px), linear-gradient(90deg, rgba(62,207,142,1) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }}
+        />
+        <div className={`relative w-full max-w-sm text-center transition-all duration-500 ${mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
           <div className="flex items-center justify-center w-16 h-16 rounded-xl bg-brand/[0.08] mx-auto mb-6">
             <CheckCircle className="h-8 w-8 text-brand" />
           </div>
-          <h1 className="text-2xl font-semibold text-text-primary tracking-tight mb-2">Conta criada!</h1>
-          <p className="text-text-secondary mb-2">
-           Enviamos um link de confirmação para <strong className="text-text-primary">{email}</strong>
+          <h1 className="text-xl font-semibold text-text-primary tracking-tight mb-2">Conta criada!</h1>
+          <p className="text-sm text-text-secondary mb-2">
+            Enviamos um link de confirmação para <strong className="text-text-primary">{email}</strong>
           </p>
-          <p className="text-sm text-text-muted mb-8">
-            Verifique sua caixa de entrada e clique no link para ativar sua conta. Você será redirecionado para o login.
+          <p className="text-xs text-text-muted mb-8 leading-relaxed">
+            Verifique sua caixa de entrada e spam. Clique no link para ativar sua conta e começar a usar o INVENTOY.
           </p>
           <Button variant="outline" onClick={() => router.push("/login")}>
             Ir para o login
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -98,102 +98,94 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-sm">
+    <div className="relative min-h-screen bg-bg-primary flex flex-col items-center justify-center p-4 overflow-hidden">
+      {/* Background grid */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage: "linear-gradient(rgba(62,207,142,1) 1px, transparent 1px), linear-gradient(90deg, rgba(62,207,142,1) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+        }}
+      />
+      <div className="absolute top-1/4 -right-32 w-96 h-96 rounded-full bg-brand/5 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-brand/3 blur-3xl pointer-events-none" />
+
+      <div className={`relative w-full max-w-sm transition-all duration-500 ${mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <Link href="/" className="flex items-center justify-center w-16 h-16 rounded-xl bg-brand/10 mb-4 hover:bg-brand/[0.15] transition-colors">
-            <Box className="h-8 w-8 text-brand" />
+          <Link
+            href="/"
+            className="group flex items-center justify-center w-14 h-14 rounded-xl bg-brand/[0.08] mb-4 hover:bg-brand/[0.12] transition-all duration-300 hover:shadow-[0_0_30px_rgba(62,207,142,0.1)]"
+            aria-label="Voltar para página inicial"
+          >
+            <Box className="h-7 w-7 text-brand transition-transform duration-300 group-hover:scale-110" />
           </Link>
-          <h1 className="text-2xl font-semibold text-text-primary tracking-tight">Criar Conta</h1>
+          <h1 className="text-xl font-semibold text-text-primary tracking-tight">Criar Conta</h1>
           <p className="text-sm text-text-muted mt-1">Comece seu teste grátis — sem cartão de crédito</p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleRegister} className="space-y-4">
-          <Input
-            label="Nome completo"
-            placeholder="Seu nome"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            icon={<User className="h-4 w-4" />}
-          />
-
-          <Input
-            label="Nome da empresa"
-            placeholder="Minha Empresa Ltda"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-            required
-            icon={<Building2 className="h-4 w-4" />}
-          />
-
-          <Input
-            label="Email"
-            type="email"
-            placeholder="voce@empresa.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            icon={<Mail className="h-4 w-4" />}
-          />
-
-          <div className="relative">
-            <Input
-              label="Senha"
-              type={showPassword ? "text" : "password"}
-              placeholder="Mínimo 6 caracteres"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              icon={<Lock className="h-4 w-4" />}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-[34px] text-text-muted hover:text-text-primary transition-colors"
-              tabIndex={-1}
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
+          <div>
+            <Label htmlFor="reg-name">Nome completo</Label>
+            <Input id="reg-name" placeholder="Seu nome" value={name} onChange={(e) => setName(e.target.value)} required icon={<User className="h-4 w-4" />} />
           </div>
 
-          <p className="text-xs text-text-muted">
+          <div>
+            <Label htmlFor="reg-company">Nome da empresa</Label>
+            <Input id="reg-company" placeholder="Minha Empresa Ltda" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required icon={<Building2 className="h-4 w-4" />} />
+          </div>
+
+          <div>
+            <Label htmlFor="reg-email">Email</Label>
+            <Input id="reg-email" type="email" placeholder="voce@empresa.com" value={email} onChange={(e) => setEmail(e.target.value)} required icon={<Mail className="h-4 w-4" />} />
+          </div>
+
+          <div>
+            <Label htmlFor="reg-password">Senha</Label>
+            <div className="relative">
+              <Input id="reg-password" type={showPassword ? "text" : "password"} placeholder="Mínimo 6 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} icon={<Lock className="h-4 w-4" />} />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors p-0.5"
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            <p className="text-[10px] text-text-muted mt-1">Deve ter no mínimo 6 caracteres</p>
+          </div>
+
+          <p className="text-[11px] text-text-muted leading-relaxed">
             Ao criar sua conta, você aceita nossos{" "}
             <Link href="/termos" className="text-brand hover:underline">Termos de Serviço</Link> e{" "}
             <Link href="/privacidade" className="text-brand hover:underline">Política de Privacidade</Link>.
           </p>
 
           {error && (
-            <div className="text-sm p-3 rounded-[4px] border border-brand-danger/20 bg-brand-danger-dim text-brand-danger">
+            <div className="text-sm p-3 rounded-[4px] border border-brand-danger/20 bg-brand-danger-dim text-brand-danger" role="alert">
               {error}
             </div>
           )}
 
           <Button type="submit" className="w-full h-11" loading={loading}>
-            Criar Conta Grátis
+            {loading ? "Criando conta..." : "Criar Conta Grátis"}
           </Button>
 
-          <div className="text-center pt-2">
+          <div className="text-center">
             <span className="text-sm text-text-muted">Já tem conta? </span>
-            <Link
-              href="/login"
-              className="text-sm text-brand hover:text-brand-hover transition-colors font-medium"
-            >
+            <Link href="/login" className="text-sm text-brand hover:text-brand-hover transition-colors font-medium">
               Fazer login
             </Link>
           </div>
         </form>
-
-        {/* ASAAS badge */}
-        <div className="mt-8 text-center">
-          <p className="text-[10px] text-text-muted">
-            Pagamentos processados por ASAAS • PIX, Boleto e Cartão
-          </p>
-        </div>
       </div>
+
+      {/* ASAAS badge */}
+      <p className="relative mt-8 text-[10px] text-text-muted text-center">
+        Pagamentos processados por ASAAS • PIX, Boleto e Cartão
+      </p>
     </div>
   );
 }

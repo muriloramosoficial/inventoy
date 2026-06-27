@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
     }
     console.error("API v1 movements error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch movements", message: error instanceof Error ? error.message : String(error) },
+      { error: "Erro ao buscar movimentacoes" },
       { status: 500 }
     );
   }
@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
     }
     console.error("API v1 movements create error:", error);
     return NextResponse.json(
-      { error: "Failed to create movement", message: error instanceof Error ? error.message : String(error) },
+      { error: "Erro ao criar movimentacao" },
       { status: 500 }
     );
   }

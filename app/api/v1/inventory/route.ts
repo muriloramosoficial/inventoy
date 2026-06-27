@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
     }
     console.error("API v1 inventory error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch inventory", message: error instanceof Error ? error.message : String(error) },
+      { error: "Erro ao buscar inventario" },
       { status: 500 }
     );
   }

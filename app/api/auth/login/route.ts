@@ -40,13 +40,13 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       console.error("[api/login] supabase error:", error.message);
-      return NextResponse.json({ error: error.message }, { status: 401 });
+      return NextResponse.json({ error: "Email ou senha incorretos" }, { status: 401 });
     }
 
     console.log("[api/login] success for", email);
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[api/login] unexpected error:", err);
-    return NextResponse.json({ error: `Erro interno: ${err instanceof Error ? err.message : String(err)}` }, { status: 500 });
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }

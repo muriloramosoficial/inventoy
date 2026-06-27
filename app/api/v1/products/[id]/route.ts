@@ -39,7 +39,7 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
     return NextResponse.json(
-      { error: "Failed to fetch product", message: error instanceof Error ? error.message : String(error) },
+      { error: "Erro ao buscar produto" },
       { status: 500 }
     );
   }
@@ -76,7 +76,7 @@ export async function PATCH(
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
     return NextResponse.json(
-      { error: "Failed to update product", message: error instanceof Error ? error.message : String(error) },
+      { error: "Erro ao atualizar produto" },
       { status: 500 }
     );
   }
@@ -111,7 +111,7 @@ export async function DELETE(
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
     return NextResponse.json(
-      { error: "Failed to archive product", message: error instanceof Error ? error.message : String(error) },
+      { error: "Erro ao arquivar produto" },
       { status: 500 }
     );
   }

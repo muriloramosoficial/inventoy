@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
     }
     console.error("API v1 products error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch products", message: error instanceof Error ? error.message : String(error) },
+      { error: "Erro ao buscar produtos" },
       { status: 500 }
     );
   }
@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
     }
     console.error("API v1 products create error:", error);
     return NextResponse.json(
-      { error: "Failed to create product", message: error instanceof Error ? error.message : String(error) },
+      { error: "Erro ao criar produto" },
       { status: 500 }
     );
   }

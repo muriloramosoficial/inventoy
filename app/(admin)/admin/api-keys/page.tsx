@@ -88,21 +88,19 @@ export default function AdminApiKeysPage() {
     if (!newKeyName.trim()) return;
     setCreating(true);
     try {
-      const supabase = createClient();
-      const key = `inv_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
-      const prefix = key.slice(0, 7);
-
-      const { error } = await supabase.from("api_keys").insert({
-        name: newKeyName.trim(),
-        key_prefix: prefix,
-        key_hash: key,
-        permissions: newKeyPerms,
-        is_active: true,
+      const res = await fetch("/api/admin/api-keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newKeyName.trim(),
+          permissions: newKeyPerms,
+        }),
       });
 
-      if (error) throw error;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao criar chave");
 
-      setCreatedKey(key);
+      setCreatedKey(data.key);
       setSuccess("Chave de API criada com sucesso");
       setTimeout(() => setSuccess(null), 5000);
       setNewKeyName("");
@@ -187,32 +185,7 @@ export default function AdminApiKeysPage() {
             <AlertTriangle className="h-4 w-4" />
             <span>Tabela de API Keys nao encontrada</span>
           </div>
-          <p className="text-text-muted">Execute a migration para criar a tabela de API keys:</p>
-          <pre className="bg-bg-surface border border-border-default rounded-[4px] p-4 text-xs text-text-secondary overflow-x-auto font-mono">
-{`CREATE TABLE api_keys (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
-  key_prefix TEXT NOT NULL,
-  key_hash TEXT NOT NULL,
-  permissions TEXT[] DEFAULT ARRAY['read'],
-  is_active BOOLEAN DEFAULT true,
-  last_used_at TIMESTAMPTZ,
-  expires_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
-ALTER TABLE api_keys ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Admins can manage API keys"
-  ON api_keys FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.is_system_admin = true
-    )
-  );`}
-          </pre>
+          <p className="text-text-muted">Execute as migrations do Supabase para criar a tabela.</p>
         </div>
       )}
 

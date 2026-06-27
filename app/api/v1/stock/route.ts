@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
     }
     console.error("API v1 stock error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch stock", message: error instanceof Error ? error.message : String(error) },
+      { error: "Erro ao buscar estoque" },
       { status: 500 }
     );
   }

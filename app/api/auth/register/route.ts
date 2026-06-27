@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("[api/register] supabase error:", error.message);
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: "Erro ao criar conta. Tente novamente." }, { status: 400 });
     }
 
     if (data?.user?.identities?.length === 0) {
@@ -102,6 +102,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[api/register] unexpected error:", err);
-    return NextResponse.json({ error: `Erro interno: ${err instanceof Error ? err.message : String(err)}` }, { status: 500 });
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }

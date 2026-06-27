@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { authenticateV1Request, V1AuthError } from "@/lib/api/v1-auth";
+import { createMovementSchema } from "@/lib/validations";
 
 export async function GET(req: NextRequest) {
   try {
@@ -71,22 +72,16 @@ export async function POST(req: NextRequest) {
     );
 
     const body = await req.json();
-    const { product_id, type, quantity, location_id, to_location_id, notes, reference } = body;
-
-    if (!product_id || !type || !quantity || !location_id) {
+    const parsed = createMovementSchema.safeParse(body);
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0];
       return NextResponse.json(
-        { error: "Missing required fields: product_id, type, quantity, location_id" },
+        { error: firstError?.message || "Dados invalidos" },
         { status: 400 }
       );
     }
 
-    const validTypes = ["in", "out", "transfer", "adjustment", "count"];
-    if (!validTypes.includes(type)) {
-      return NextResponse.json(
-        { error: `Invalid type. Must be one of: ${validTypes.join(", ")}` },
-        { status: 400 }
-      );
-    }
+    const { product_id, type, quantity, location_id, to_location_id, notes, reference } = parsed.data;
 
     const { data: product, error: productError } = await adminClient
       .from("products")

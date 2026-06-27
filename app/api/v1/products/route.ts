@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { authenticateV1Request, V1AuthError } from "@/lib/api/v1-auth";
+import { createProductSchema } from "@/lib/validations";
 
 function getAdminClient() {
   return createClient(
@@ -75,14 +76,16 @@ export async function POST(req: NextRequest) {
     const adminClient = getAdminClient();
     const body = await req.json();
 
-    const { sku, name, description, category_id, min_stock, unit, price, cost } = body;
-
-    if (!sku || !name) {
+    const parsed = createProductSchema.safeParse(body);
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0];
       return NextResponse.json(
-        { error: "Missing required fields: sku, name" },
+        { error: firstError?.message || "Dados invalidos" },
         { status: 400 }
       );
     }
+
+    const { sku, name, description, category_id, min_stock, unit, price, cost } = parsed.data;
 
     const { data, error } = await adminClient
       .from("products")

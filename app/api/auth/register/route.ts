@@ -1,14 +1,38 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { registerSchema } from "@/lib/validations";
+import { checkRateLimit } from "@/lib/rate-limiter";
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, password, companyName, cpf, cnpj } = await request.json();
-
-    if (!email || !password || !name || !companyName) {
-      return NextResponse.json({ error: "Preencha todos os campos obrigatorios" }, { status: 400 });
+    // Rate limiting
+    const rateLimit = await checkRateLimit(request);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Muitas tentativas. Tente novamente em " + rateLimit.resetIn + " segundos." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(rateLimit.resetIn),
+            "X-RateLimit-Remaining": "0",
+          },
+        }
+      );
     }
+
+    const body = await request.json();
+    const parsed = registerSchema.safeParse(body);
+
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0];
+      return NextResponse.json(
+        { error: firstError?.message || "Dados invalidos" },
+        { status: 400 }
+      );
+    }
+
+    const { name, email, password, companyName, cpf, cnpj } = parsed.data;
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

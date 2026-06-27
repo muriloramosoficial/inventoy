@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { asaasWebhookSchema } from "@/lib/validations";
 
 // ASAAS Webhook Implementation
 // Docs: https://docs.asaas.com/docs/eventos-para-assinaturas
@@ -62,8 +63,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid webhook token" }, { status: 401 });
     }
 
-    const body: AsaasWebhookBody = await req.json();
-    const { event, payment, subscription } = body;
+    const rawBody = await req.json();
+    const parsed = asaasWebhookSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      console.warn("[ASAAS Webhook] Invalid payload:", parsed.error.issues);
+      return NextResponse.json({ received: true }); // Always return 200 for webhooks
+    }
+
+    const { event, payment, subscription } = parsed.data;
 
     console.log(`[ASAAS Webhook] Event: ${event}`, {
       paymentId: payment?.id,

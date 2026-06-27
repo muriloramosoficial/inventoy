@@ -1,14 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHash, randomBytes } from "crypto";
 import { createClient } from "@/lib/supabase/server";
+import { createStaffApiKeySchema } from "@/lib/validations";
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, permissions } = await req.json();
-
-    if (!name || !name.trim()) {
-      return NextResponse.json({ error: "Nome da chave é obrigatório" }, { status: 400 });
+    const body = await req.json();
+    const parsed = createStaffApiKeySchema.safeParse(body);
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0];
+      return NextResponse.json(
+        { error: firstError?.message || "Dados invalidos" },
+        { status: 400 }
+      );
     }
+
+    const { name, permissions } = parsed.data;
 
     const supabase = await createClient();
 

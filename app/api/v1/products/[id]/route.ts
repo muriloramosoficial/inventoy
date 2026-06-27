@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { authenticateV1Request, V1AuthError } from "@/lib/api/v1-auth";
+import { updateProductSchema } from "@/lib/validations";
 
 function getAdminClient() {
   return createClient(
@@ -55,9 +56,18 @@ export async function PATCH(
     const adminClient = getAdminClient();
     const body = await req.json();
 
+    const parsed = updateProductSchema.safeParse(body);
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0];
+      return NextResponse.json(
+        { error: firstError?.message || "Dados invalidos" },
+        { status: 400 }
+      );
+    }
+
     const { data, error } = await adminClient
       .from("products")
-      .update(body)
+      .update(parsed.data)
       .eq("id", id)
       .eq("tenant_id", tenantId)
       .select()
@@ -65,7 +75,7 @@ export async function PATCH(
 
     if (error) {
       if (error.code === "PGRST116") {
-        return NextResponse.json({ error: "Product not found" }, { status: 404 });
+        return NextResponse.json({ error: "Produto nao encontrado" }, { status: 404 });
       }
       throw error;
     }

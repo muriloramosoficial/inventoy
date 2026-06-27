@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createApiKey, listApiKeys, revokeApiKey } from "@/lib/api/auth";
+import { createApiKeySchema, revokeApiKeySchema } from "@/lib/validations";
 
 export async function GET() {
   try {
@@ -46,10 +47,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
-    const { name } = await req.json();
-    if (!name || typeof name !== "string" || name.trim().length === 0) {
-      return NextResponse.json({ error: "Key name is required" }, { status: 400 });
+    const body = await req.json();
+    const parsed = createApiKeySchema.safeParse(body);
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0];
+      return NextResponse.json(
+        { error: firstError?.message || "Dados invalidos" },
+        { status: 400 }
+      );
     }
+
+    const { name, permissions } = parsed.data;
 
     const supabaseAdmin = await createClient();
     const { data: tenant } = await supabaseAdmin
@@ -100,10 +108,17 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
-    const { keyId } = await req.json();
-    if (!keyId) {
-      return NextResponse.json({ error: "Key ID is required" }, { status: 400 });
+    const body = await req.json();
+    const parsed = revokeApiKeySchema.safeParse(body);
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0];
+      return NextResponse.json(
+        { error: firstError?.message || "Dados invalidos" },
+        { status: 400 }
+      );
     }
+
+    const { keyId } = parsed.data;
 
     const { error } = await revokeApiKey(keyId, profile.tenant_id);
     if (error) {

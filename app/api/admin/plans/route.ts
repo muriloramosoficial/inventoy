@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { updatePlanSchema } from "@/lib/validations";
 
 // GET - Public endpoint (landing page, subscription page)
 // Returns plan configs without requiring authentication
@@ -41,11 +42,16 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, ...data } = body;
-
-    if (!id) {
-      return NextResponse.json({ error: "ID do plano é obrigatório" }, { status: 400 });
+    const parsed = updatePlanSchema.safeParse(body);
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0];
+      return NextResponse.json(
+        { error: firstError?.message || "Dados invalidos" },
+        { status: 400 }
+      );
     }
+
+    const { id, ...data } = parsed.data;
 
     const supabase = await createClient();
 

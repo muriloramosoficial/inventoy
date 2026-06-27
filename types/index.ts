@@ -60,6 +60,18 @@ export interface Product {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  // Patrimonio
+  asset_tag: string | null;
+  brand: string | null;
+  model: string | null;
+  serial_number: string | null;
+  acquisition_date: string | null;
+  warranty_expiry: string | null;
+  responsible_user: string | null;
+  condition: "excelente" | "bom" | "regular" | "ruim" | "danificado" | null;
+  // Virtual (from v_assets view)
+  current_location_id?: string | null;
+  current_location_name?: string | null;
 }
 
 export interface InventoryItem {

@@ -26,14 +26,14 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
-  { label: "Products", href: "/products", icon: <Box className="h-4 w-4" /> },
+  { label: "Produtos", href: "/products", icon: <Box className="h-4 w-4" /> },
   { label: "Estoque", href: "/inventory", icon: <Package className="h-4 w-4" /> },
-  { label: "Movimentações", href: "/movements", icon: <ArrowRightLeft className="h-4 w-4" /> },
+  { label: "Movimentacoes", href: "/movements", icon: <ArrowRightLeft className="h-4 w-4" /> },
   { label: "Scanner", href: "/scanner", icon: <ScanLine className="h-4 w-4" /> },
   { label: "Categorias", href: "/categories", icon: <Tags className="h-4 w-4" /> },
-  { label: "Localizações", href: "/locations", icon: <MapPin className="h-4 w-4" /> },
-  { label: "Relatórios", href: "/reports", icon: <BarChart3 className="h-4 w-4" /> },
-  { label: "Configurações", href: "/settings", icon: <Settings className="h-4 w-4" /> },
+  { label: "Localizacoes", href: "/locations", icon: <MapPin className="h-4 w-4" /> },
+  { label: "Relatorios", href: "/reports", icon: <BarChart3 className="h-4 w-4" /> },
+  { label: "Configuracoes", href: "/settings", icon: <Settings className="h-4 w-4" /> },
   { label: "API Docs", href: "/settings/api", icon: <Code2 className="h-4 w-4" /> },
 ];
 

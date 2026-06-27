@@ -94,7 +94,7 @@ export default function LoginPage() {
                   <button type="button" className="text-[11px] text-text-muted hover:text-brand transition-colors" tabIndex={-1}>Esqueceu?</button>
                 </div>
                 <div className="relative">
-                  <Input id="login-password" type={showPassword ? "text" : "password"} placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" icon={<Lock className="h-4 w-4" />} />
+                  <Input id="login-password" type={showPassword ? "text" : "password"} placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e: React.KeyboardEvent) => { if (e.key === "Enter") handleLogin(); }} required autoComplete="current-password" icon={<Lock className="h-4 w-4" />} />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors p-0.5" aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"} tabIndex={-1}>
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>

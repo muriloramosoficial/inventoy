@@ -20,7 +20,8 @@ alter table inventory_items add column if not exists deleted_at timestamptz;
 alter table movements add column if not exists deleted_at timestamptz;
 alter table api_keys add column if not exists deleted_at timestamptz;
 alter table invite_codes add column if not exists deleted_at timestamptz;
-alter table audit_log add column if not exists deleted_at timestamptz;
+-- Note: audit_log skipped — table does not exist on this remote;
+-- will be created in a future migration cycle
 
 -- 3. Trigger de updated_at para tabelas que nao tem
 create or replace function update_updated_at_column()
@@ -33,11 +34,17 @@ begin
 end;
 $$;
 
+drop trigger if exists tenants_updated_at on tenants;
 create trigger tenants_updated_at before update on tenants for each row execute function update_updated_at_column();
+drop trigger if exists profiles_updated_at on profiles;
 create trigger profiles_updated_at before update on profiles for each row execute function update_updated_at_column();
+drop trigger if exists categories_updated_at on categories;
 create trigger categories_updated_at before update on categories for each row execute function update_updated_at_column();
+drop trigger if exists locations_updated_at on locations;
 create trigger locations_updated_at before update on locations for each row execute function update_updated_at_column();
+drop trigger if exists api_keys_updated_at on api_keys;
 create trigger api_keys_updated_at before update on api_keys for each row execute function update_updated_at_column();
+drop trigger if exists invite_codes_updated_at on invite_codes;
 create trigger invite_codes_updated_at before update on invite_codes for each row execute function update_updated_at_column();
 
 -- 4. Recrear RLS policies para filtrar deleted_at IS NULL em SELECT

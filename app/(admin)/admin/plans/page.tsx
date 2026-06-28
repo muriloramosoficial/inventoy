@@ -102,12 +102,12 @@ export default function AdminPlansPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-text-primary tracking-tight">Gerenciar Planos</h1>
           <p className="text-sm text-text-muted mt-1">Edite precos, recursos e descricoes dos planos exibidos na landing page</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <TechBadge variant="green">Landing page</TechBadge>
           <TechBadge variant="blue">Planos</TechBadge>
         </div>
@@ -119,18 +119,18 @@ export default function AdminPlansPage() {
           .map((plan) => (
             <Card key={plan.id}>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <GripVertical className="h-4 w-4 text-text-muted cursor-move" />
-                    <CardTitle className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <GripVertical className="h-4 w-4 shrink-0 text-text-muted cursor-move" />
+                    <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                       {plan.name}
                       {plan.highlighted && (
                         <TechBadge variant="green">DESTAQUE</TechBadge>
                       )}
                     </CardTitle>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <label className="flex items-center gap-2 text-xs text-text-muted cursor-pointer">
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                    <label className="flex items-center gap-2 text-xs text-text-muted cursor-pointer whitespace-nowrap">
                       <input
                         type="checkbox"
                         checked={plan.highlighted}

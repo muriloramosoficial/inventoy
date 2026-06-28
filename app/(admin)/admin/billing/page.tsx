@@ -134,54 +134,54 @@ export default function AdminBillingPage() {
       </div>
 
       {/* Revenue cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-[6px] border border-border-default bg-bg-card p-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-text-muted uppercase tracking-wider">MRR</span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="rounded-[6px] border border-border-default bg-bg-card p-3 lg:p-4">
+          <div className="flex items-center justify-between mb-2 lg:mb-3">
+            <span className="text-[10px] lg:text-xs font-medium text-text-muted uppercase tracking-wider">MRR</span>
             <div className="p-1.5 rounded-[4px] bg-brand-8">
-              <DollarSign className="h-4 w-4 text-brand" />
+              <DollarSign className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-brand" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-text-primary">
+          <div className="text-xl lg:text-2xl font-bold text-text-primary">
             R$ {data.mrr.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
           </div>
           <p className="text-[10px] text-text-muted mt-1">Receita recorrente mensal</p>
         </div>
 
-        <div className="rounded-[6px] border border-border-default bg-bg-card p-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-text-muted uppercase tracking-wider">ARR</span>
+        <div className="rounded-[6px] border border-border-default bg-bg-card p-3 lg:p-4">
+          <div className="flex items-center justify-between mb-2 lg:mb-3">
+            <span className="text-[10px] lg:text-xs font-medium text-text-muted uppercase tracking-wider">ARR</span>
             <div className="p-1.5 rounded-[4px] bg-brand-info-8">
-              <TrendingUp className="h-4 w-4 text-brand-info" />
+              <TrendingUp className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-brand-info" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-text-primary">
+          <div className="text-xl lg:text-2xl font-bold text-text-primary">
             R$ {data.arr.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
           </div>
           <p className="text-[10px] text-text-muted mt-1">Receita recorrente anual</p>
         </div>
 
-        <div className="rounded-[6px] border border-border-default bg-bg-card p-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-text-muted uppercase tracking-wider">Custo Supabase</span>
+        <div className="rounded-[6px] border border-border-default bg-bg-card p-3 lg:p-4">
+          <div className="flex items-center justify-between mb-2 lg:mb-3">
+            <span className="text-[10px] lg:text-xs font-medium text-text-muted uppercase tracking-wider">Custo Supabase</span>
             <div className="p-1.5 rounded-[4px] bg-brand-danger-10">
-              <Receipt className="h-4 w-4 text-brand-danger" />
+              <Receipt className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-brand-danger" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-text-primary">
+          <div className="text-xl lg:text-2xl font-bold text-text-primary">
             R$ {data.estimated_supabase_cost.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
           </div>
-          <p className="text-[10px] text-text-muted mt-1">Estimativa mensal (free tier: $0)</p>
+          <p className="text-[10px] text-text-muted mt-1">Estimativa mensal</p>
         </div>
 
-        <div className="rounded-[6px] border border-border-default bg-bg-card p-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-text-muted uppercase tracking-wider">Lucro Estimado</span>
+        <div className="rounded-[6px] border border-border-default bg-bg-card p-3 lg:p-4">
+          <div className="flex items-center justify-between mb-2 lg:mb-3">
+            <span className="text-[10px] lg:text-xs font-medium text-text-muted uppercase tracking-wider">Lucro Estimado</span>
             <div className="p-1.5 rounded-[4px] bg-brand-8">
-              <Wallet className="h-4 w-4 text-brand" />
+              <Wallet className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-brand" />
             </div>
           </div>
-          <div className={`text-2xl font-bold ${data.estimated_profit >= 0 ? "text-brand" : "text-brand-danger"}`}>
+          <div className={`text-xl lg:text-2xl font-bold ${data.estimated_profit >= 0 ? "text-brand" : "text-brand-danger"}`}>
             R$ {data.estimated_profit.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
           </div>
           <p className="text-[10px] text-text-muted mt-1">MRR - custos estimados</p>
@@ -189,8 +189,8 @@ export default function AdminBillingPage() {
       </div>
 
       {/* Plan breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-[6px] border border-border-default bg-bg-card p-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <div className="rounded-[6px] border border-border-default bg-bg-card p-4 lg:p-5">
           <div className="flex items-center gap-2 mb-4">
             <PieChart className="h-4 w-4 text-text-muted" />
             <h2 className="text-sm font-medium text-text-muted uppercase tracking-wider">Planos Ativos</h2>
@@ -230,33 +230,33 @@ export default function AdminBillingPage() {
             <h2 className="text-sm font-medium text-text-muted uppercase tracking-wider">Saude da Base</h2>
           </div>
           <div className="space-y-4">
-            <div className="flex items-center justify-between py-3 border-b border-border-default">
-              <div>
+            <div className="flex items-center justify-between py-3 border-b border-border-default gap-3">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm text-text-primary">Tenants Pagantes</p>
                 <p className="text-[10px] text-text-muted">Plano Starter, Pro ou Enterprise</p>
               </div>
-              <span className="text-xl font-bold text-brand">{data.active_paid}</span>
+              <span className="text-lg lg:text-xl font-bold shrink-0 text-brand">{data.active_paid}</span>
             </div>
-            <div className="flex items-center justify-between py-3 border-b border-border-default">
-              <div>
+            <div className="flex items-center justify-between py-3 border-b border-border-default gap-3">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm text-text-primary">Em Trial</p>
                 <p className="text-[10px] text-text-muted">Periodo de teste gratuito</p>
               </div>
-              <span className="text-xl font-bold text-brand-info">{data.trial_count}</span>
+              <span className="text-lg lg:text-xl font-bold shrink-0 text-brand-info">{data.trial_count}</span>
             </div>
-            <div className="flex items-center justify-between py-3 border-b border-border-default">
-              <div>
+            <div className="flex items-center justify-between py-3 border-b border-border-default gap-3">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm text-text-primary">Cancelados</p>
                 <p className="text-[10px] text-text-muted">Assinaturas encerradas</p>
               </div>
-              <span className="text-xl font-bold text-brand-danger">{data.canceled_count}</span>
+              <span className="text-lg lg:text-xl font-bold shrink-0 text-brand-danger">{data.canceled_count}</span>
             </div>
-            <div className="flex items-center justify-between py-3">
-              <div>
+            <div className="flex items-center justify-between py-3 gap-3">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm text-text-primary">Taxa de Cancelamento</p>
-                <p className="text-[10px] text-text-muted">Taxa de cancelamento</p>
+                <p className="text-[10px] text-text-muted">Churn rate mensal</p>
               </div>
-              <span className={`text-xl font-bold ${data.churn_rate > 10 ? "text-brand-danger" : "text-brand"}`}>
+              <span className={`text-lg lg:text-xl font-bold shrink-0 ${data.churn_rate > 10 ? "text-brand-danger" : "text-brand"}`}>
                 {data.churn_rate.toFixed(1)}%
               </span>
             </div>
@@ -266,9 +266,9 @@ export default function AdminBillingPage() {
 
       {/* Cost breakdown table */}
       <div className="rounded-[6px] border border-border-default bg-bg-card p-5">
-        <h2 className="text-sm font-medium text-text-muted uppercase tracking-wider mb-4">Detalhamento de Custos</h2>
+        <h2 className="text-sm font-medium text-text-muted uppercase tracking-wider mb-3 lg:mb-4">Detalhamento de Custos</h2>
         <div className="overflow-x-auto -mx-1">
-          <table className="w-full text-sm min-w-[500px]">
+          <table className="w-full text-sm min-w-[400px] lg:min-w-[500px]">
             <thead>
               <tr className="border-b border-border-default">
                 <th className="text-left py-2 text-text-muted font-medium text-xs">Item</th>

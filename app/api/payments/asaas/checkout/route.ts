@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import {
   createAsaasCustomer,
@@ -49,13 +50,27 @@ export async function GET(request: NextRequest) {
     // Get tenant info
     const { data: tenant, error: tenantError } = await supabase
       .from("tenants")
-      .select("id, name, cnpj, payment_customer_id")
+      .select("id, name, cnpj, payment_customer_id, plan, pending_plan, subscription_status")
       .eq("id", profile.tenant_id)
       .single();
 
     if (tenantError || !tenant) {
       return NextResponse.redirect(
         new URL("/subscription?error=tenant_not_found", request.url)
+      );
+    }
+
+    // 🛡️ Security: Check if user already has an active paid subscription
+    if (tenant.subscription_status === "active" && tenant.plan !== "free") {
+      return NextResponse.redirect(
+        new URL("/subscription?error=already_active", request.url)
+      );
+    }
+
+    // 🛡️ Security: If there's a pending subscription, prevent creating another
+    if (tenant.subscription_status === "incomplete" && tenant.pending_plan) {
+      return NextResponse.redirect(
+        new URL("/subscription?error=pending_exists", request.url)
       );
     }
 
@@ -115,13 +130,17 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    // Save subscription info — status stays "incomplete" until webhook confirms payment
-    await supabase
+    // 🛡️ Security: Use service_role client for critical updates
+    // This ensures:
+    // 1. The plan is NOT changed before payment (uses pending_plan instead)
+    // 2. The update bypasses RLS (which restricts regular users from changing plan)
+    const adminClient = createAdminClient();
+    await adminClient
       .from("tenants")
       .update({
         subscription_id: subscription.id,
         subscription_status: "incomplete",
-        plan: planId,
+        pending_plan: planId, // Store the plan as pending — only activated on payment confirmation
       })
       .eq("id", tenant.id);
 
@@ -138,5 +157,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
-

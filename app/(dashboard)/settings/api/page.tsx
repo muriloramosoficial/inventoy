@@ -169,7 +169,7 @@ export default function ApiDocsPage() {
   };
 
   const activeKeys = apiKeys.filter((k) => !k.revoked_at);
-  const hasApiAccess = tenant && (tenant.plan === "starter" || tenant.plan === "pro" || tenant.plan === "enterprise") && tenant.subscription_status !== "canceled";
+  const hasApiAccess = tenant && (tenant.plan === "starter" || tenant.plan === "pro" || tenant.plan === "enterprise") && (tenant.subscription_status === "active" || tenant.subscription_status === "trialing");
 
   if (loading) {
     return (

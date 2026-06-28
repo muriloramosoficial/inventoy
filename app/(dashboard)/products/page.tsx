@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,12 +23,12 @@ import {
   Loader2,
   Eye,
   EyeOff,
-  SlidersHorizontal,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { getBrowserClient } from "@infra/database/supabase/client";
 import { useToast } from "@/components/ui/toast";
 import { FilterBar } from "@/components/ui/filter-bar";
-import type { Product, Category } from "@/types";
+import { useProducts } from "@modules/catalog/presentation/hooks/use-products";
+import type { Condition } from "@modules/catalog/domain/product.types";
 
 const conditions = [
   { value: "excelente", label: "Excelente" },
@@ -37,10 +37,6 @@ const conditions = [
   { value: "ruim", label: "Ruim" },
   { value: "danificado", label: "Danificado" },
 ];
-
-interface ProductWithCategory extends Product {
-  category?: Category;
-}
 
 const emptyForm = {
   asset_tag: "",
@@ -58,68 +54,37 @@ const emptyForm = {
 };
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<ProductWithCategory[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    products,
+    categories,
+    loading,
+    error,
+    search,
+    setSearch,
+    filterCategory,
+    setFilterCategory,
+    showArchived,
+    setShowArchived,
+    refresh,
+    create,
+    update,
+    archive,
+  } = useProducts();
   const { error: toastError } = useToast();
-  const [search, setSearch] = useState("");
-  const [filterCategory, setFilterCategory] = useState("all");
   const [filterCondition, setFilterCondition] = useState("all");
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<ProductWithCategory | null>(null);
+  const [editingProduct, setEditingProduct] = useState<typeof products[number] | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyForm);
-  const [showArchived, setShowArchived] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   const set = (key: string, value: string) => setForm((f) => ({ ...f, [key]: value }));
-
-  useEffect(() => {
-    let mounted = true;
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const supabase = createClient();
-        const query = supabase.from("products").select("*, category:categories(*)");
-        if (!showArchived) query.is("archived_at", null);
-        const [productsResult, categoriesResult] = await Promise.all([
-          query,
-          supabase.from("categories").select("*"),
-        ]);
-
-        if (productsResult.error) throw productsResult.error;
-        if (categoriesResult.error) throw categoriesResult.error;
-
-        if (mounted) setProducts((productsResult.data || []) as ProductWithCategory[]);
-        if (mounted) setCategories(categoriesResult.data || []);
-      } catch (err) {
-        if (mounted) setError(err instanceof Error ? err.message : "Erro ao carregar patrimonio");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    }
-    load();
-    return () => { mounted = false; };
-  }, [refreshKey, showArchived]);
 
   const categoryOptions = categories.map((c) => ({ value: c.id, label: c.name }));
   const conditionOptions = conditions.map((c) => ({ value: c.value, label: c.label }));
 
   const filtered = products.filter((p) => {
-    const matchesSearch =
-      (p.asset_tag || "").toLowerCase().includes(search.toLowerCase()) ||
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      (p.brand || "").toLowerCase().includes(search.toLowerCase()) ||
-      (p.model || "").toLowerCase().includes(search.toLowerCase()) ||
-      (p.serial_number || "").toLowerCase().includes(search.toLowerCase()) ||
-      (p.category?.name || "").toLowerCase().includes(search.toLowerCase());
-
-    const matchesCategory = filterCategory === "all" || p.category_id === filterCategory;
     const matchesCondition = filterCondition === "all" || p.condition === filterCondition;
-
-    return matchesSearch && matchesCategory && matchesCondition;
+    return matchesCondition;
   });
 
   const resetForm = () => setForm({ ...emptyForm });
@@ -131,7 +96,7 @@ export default function ProductsPage() {
     setModalOpen(true);
   };
 
-  const openEdit = (p: ProductWithCategory) => {
+  const openEdit = (p: typeof products[number]) => {
     setEditingProduct(p);
     setForm({
       asset_tag: p.asset_tag || "",
@@ -153,39 +118,36 @@ export default function ProductsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const supabase = createClient();
       const payload = {
-        asset_tag: form.asset_tag || null,
+        asset_tag: form.asset_tag || undefined,
         name: form.name,
-        category_id: form.category_id || null,
-        description: form.description || null,
-        brand: form.brand || null,
-        model: form.model || null,
-        serial_number: form.serial_number || null,
-        acquisition_date: form.acquisition_date || null,
-        warranty_expiry: form.warranty_expiry || null,
-        responsible_user: form.responsible_user || null,
-        condition: form.condition || null,
-        cost: form.cost ? parseFloat(form.cost) : null,
-        sku: form.asset_tag || null,
-        unit: "un",
+        category_id: form.category_id || undefined,
+        description: form.description || undefined,
+        brand: form.brand || undefined,
+        model: form.model || undefined,
+        serial_number: form.serial_number || undefined,
+        acquisition_date: form.acquisition_date || undefined,
+        warranty_expiry: form.warranty_expiry || undefined,
+        responsible_user: form.responsible_user || undefined,
+        condition: (form.condition || undefined) as Condition | undefined,
+        cost: form.cost ? parseFloat(form.cost) : undefined,
+        sku: form.asset_tag || undefined,
+        unit: "un" as const,
         min_stock: 0,
-        price: null,
+        price: undefined,
       };
 
       if (editingProduct) {
-        const { error } = await supabase
-          .from("products")
-          .update(payload)
-          .eq("id", editingProduct.id);
-        if (error) throw error;
+        await update(editingProduct.id, payload);
       } else {
+        // Insert directly since create in the hook expects ProductInsert without id
+        const supabase = getBrowserClient();
         const { error } = await supabase.from("products").insert(payload);
         if (error) throw error;
       }
 
       setModalOpen(false);
-      setRefreshKey((k) => k + 1);
+      refresh();
     } catch (err) {
       toastError(err instanceof Error ? err.message : "Erro ao salvar");
     } finally {
@@ -196,10 +158,7 @@ export default function ProductsPage() {
   const handleArchive = async (id: string) => {
     if (!confirm("Arquivar este item? Ele nao sera exibido nas listas padrao.")) return;
     try {
-      const supabase = createClient();
-      const { error } = await supabase.from("products").update({ archived_at: new Date().toISOString() }).eq("id", id);
-      if (error) throw error;
-      setRefreshKey((k) => k + 1);
+      await archive(id);
     } catch (err) {
       toastError(err instanceof Error ? err.message : "Erro ao arquivar");
     }
@@ -207,10 +166,10 @@ export default function ProductsPage() {
 
   const handleUnarchive = async (id: string) => {
     try {
-      const supabase = createClient();
+      const supabase = getBrowserClient();
       const { error } = await supabase.from("products").update({ archived_at: null }).eq("id", id);
       if (error) throw error;
-      setRefreshKey((k) => k + 1);
+      refresh();
     } catch (err) {
       toastError(err instanceof Error ? err.message : "Erro ao desarquivar");
     }

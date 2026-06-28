@@ -54,7 +54,7 @@ async function findTenantBySubscriptionId(subscriptionId: string) {
   const supabase = getAdminClient();
   const { data } = await supabase
     .from("tenants")
-    .select("id, plan, subscription_status")
+    .select("id, plan, pending_plan, subscription_status")
     .eq("subscription_id", subscriptionId)
     .single();
   return data;
@@ -113,16 +113,36 @@ export async function POST(req: NextRequest) {
 
     switch (event) {
       // Payment confirmed/received - activate subscription
+      // 🛡️ Moves pending_plan → plan only after payment is confirmed
       case "PAYMENT_CONFIRMED":
       case "PAYMENT_RECEIVED": {
         if (payment?.subscription) {
           const tenant = await findTenantBySubscriptionId(payment.subscription);
           if (tenant) {
-            await supabase
-              .from("tenants")
-              .update({ subscription_status: "active" })
-              .eq("id", tenant.id);
-            logger.info("Tenant subscription activated", { tenant_id: tenant.id, event });
+            if (tenant.pending_plan) {
+              // Activate plan: move pending_plan to plan
+              const { error: activateError } = await supabase.rpc(
+                "activate_tenant_plan",
+                {
+                  p_tenant_id: tenant.id,
+                  p_plan: tenant.pending_plan,
+                  p_subscription_id: payment.subscription,
+                  p_subscription_status: "active",
+                }
+              );
+              if (activateError) {
+                logger.error("Failed to activate tenant plan", { tenant_id: tenant.id, error: activateError });
+              } else {
+                logger.info("Tenant plan activated", { tenant_id: tenant.id, plan: tenant.pending_plan, event });
+              }
+            } else {
+              // No pending plan — just update status (legacy fallback)
+              await supabase
+                .from("tenants")
+                .update({ subscription_status: "active" })
+                .eq("id", tenant.id);
+              logger.info("Tenant subscription activated (legacy)", { tenant_id: tenant.id, event });
+            }
           }
         }
         break;
@@ -135,11 +155,28 @@ export async function POST(req: NextRequest) {
           if (tenant) {
             // Only update if currently incomplete (first payment)
             if (tenant.subscription_status === "incomplete" || !tenant.subscription_status) {
-              await supabase
-                .from("tenants")
-                .update({ subscription_status: "active" })
-                .eq("id", tenant.id);
-              logger.info("Tenant activated via PAYMENT_CREATED", { tenant_id: tenant.id });
+              if (tenant.pending_plan) {
+                const { error: activateError } = await supabase.rpc(
+                  "activate_tenant_plan",
+                  {
+                    p_tenant_id: tenant.id,
+                    p_plan: tenant.pending_plan,
+                    p_subscription_id: payment.subscription,
+                    p_subscription_status: "active",
+                  }
+                );
+                if (activateError) {
+                  logger.error("Failed to activate tenant plan via PAYMENT_CREATED", { tenant_id: tenant.id, error: activateError });
+                } else {
+                  logger.info("Tenant activated via PAYMENT_CREATED", { tenant_id: tenant.id, plan: tenant.pending_plan });
+                }
+              } else {
+                await supabase
+                  .from("tenants")
+                  .update({ subscription_status: "active" })
+                  .eq("id", tenant.id);
+                logger.info("Tenant activated via PAYMENT_CREATED (legacy)", { tenant_id: tenant.id });
+              }
             }
           }
         }
@@ -192,16 +229,20 @@ export async function POST(req: NextRequest) {
         break;
       }
 
-      // Subscription canceled
+      // Subscription canceled — reset plan to free
       case "SUBSCRIPTION_CANCELED": {
         if (subscription?.id) {
           const tenant = await findTenantBySubscriptionId(subscription.id);
           if (tenant) {
-            await supabase
-              .from("tenants")
-              .update({ subscription_status: "canceled" })
-              .eq("id", tenant.id);
-            logger.info("Tenant subscription canceled", { tenant_id: tenant.id });
+            const { error: cancelError } = await supabase.rpc(
+              "cancel_tenant_plan",
+              { p_tenant_id: tenant.id }
+            );
+            if (cancelError) {
+              logger.error("Failed to cancel tenant plan", { tenant_id: tenant.id, error: cancelError });
+            } else {
+              logger.info("Tenant plan reset to free", { tenant_id: tenant.id });
+            }
           }
         }
         break;
@@ -235,4 +276,5 @@ export async function POST(req: NextRequest) {
     logger.error("ASAAS webhook error", { error: error instanceof Error ? error.message : String(error) });
     return NextResponse.json({ received: true });
   }
+  
 }

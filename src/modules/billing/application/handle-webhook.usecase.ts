@@ -21,7 +21,7 @@ export async function handleWebhookUseCase(
 
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("id")
+    .select("id, plan, pending_plan, subscription_status")
     .eq("subscription_id", subId)
     .single();
 
@@ -33,7 +33,59 @@ export async function handleWebhookUseCase(
       CANCELED: "canceled", EXPIRED: "canceled",
     };
     const mappedStatus = statusMap[payload.subscription.status] || "active";
-    await supabase.from("tenants").update({ subscription_status: mappedStatus }).eq("id", tenant.id);
+
+    if (mappedStatus === "canceled" && tenant.pending_plan) {
+      // Subscription canceled — reset plan to free
+      const { error } = await supabase.rpc("cancel_tenant_plan", {
+        p_tenant_id: tenant.id,
+      });
+      if (error) {
+        console.error("[webhook] Failed to cancel tenant plan:", error);
+      }
+    } else {
+      await supabase.from("tenants").update({ subscription_status: mappedStatus }).eq("id", tenant.id);
+    }
+  } else if (event === "SUBSCRIPTION_CANCELED") {
+    // Subscription canceled — reset plan to free
+    const { error } = await supabase.rpc("cancel_tenant_plan", {
+      p_tenant_id: tenant.id,
+    });
+    if (error) {
+      console.error("[webhook] Failed to cancel tenant plan:", error);
+    }
+  } else if (event === "PAYMENT_CONFIRMED" || event === "PAYMENT_RECEIVED") {
+    // Payment confirmed — activate pending plan if exists
+    if (tenant.pending_plan) {
+      const { error } = await supabase.rpc("activate_tenant_plan", {
+        p_tenant_id: tenant.id,
+        p_plan: tenant.pending_plan,
+        p_subscription_id: subId,
+        p_subscription_status: "active",
+      });
+      if (error) {
+        console.error("[webhook] Failed to activate tenant plan:", error);
+      }
+    } else {
+      // Legacy fallback: just update status
+      await supabase.from("tenants").update({ subscription_status: "active" }).eq("id", tenant.id);
+    }
+  } else if (event === "PAYMENT_CREATED") {
+    // Payment created — activate if currently incomplete
+    if (tenant.subscription_status === "incomplete" || !tenant.subscription_status) {
+      if (tenant.pending_plan) {
+        const { error } = await supabase.rpc("activate_tenant_plan", {
+          p_tenant_id: tenant.id,
+          p_plan: tenant.pending_plan,
+          p_subscription_id: subId,
+          p_subscription_status: "active",
+        });
+        if (error) {
+          console.error("[webhook] Failed to activate tenant plan via PAYMENT_CREATED:", error);
+        }
+      } else {
+        await supabase.from("tenants").update({ subscription_status: "active" }).eq("id", tenant.id);
+      }
+    }
   } else {
     const status = EVENT_STATUS_MAP[event];
     if (status) {

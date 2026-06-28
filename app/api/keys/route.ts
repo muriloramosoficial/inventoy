@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
     }
 
-    const hasApiAccess = tenant.plan !== "free" && tenant.subscription_status !== "canceled";
+    const hasApiAccess = tenant.plan !== "free" && (tenant.subscription_status === "active" || tenant.subscription_status === "trialing");
     if (!hasApiAccess) {
       return NextResponse.json(
         { error: "API access requires Starter plan or above. Upgrade your plan." },

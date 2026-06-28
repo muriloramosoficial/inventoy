@@ -1,4 +1,5 @@
 export type AsaasEvent =
+  | "PAYMENT_CREATED"
   | "PAYMENT_CONFIRMED"
   | "PAYMENT_RECEIVED"
   | "PAYMENT_OVERDUE"

@@ -62,7 +62,7 @@ export default function DashboardLayout({
     setShowLogoutConfirm(false);
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/login");
+    router.push("/");
   };
 
   const handleLogoutClick = () => {
@@ -107,21 +107,23 @@ export default function DashboardLayout({
       {/* Main content area */}
       <div
         className={cn(
-          "flex-1 flex flex-col min-h-full transition-all duration-200",
+          "flex-1 flex flex-col h-screen overflow-hidden transition-all duration-200",
           "lg:ml-56",
           collapsed && "lg:ml-16"
         )}
       >
-        {/* Topbar */}
-        <Topbar
-          tenantName={tenantName}
-          userName={userName}
-          onLogout={handleLogoutClick}
-          onMenuToggle={() => setMobileOpen(true)}
-        />
+        {/* Topbar - sticky at top */}
+        <div className="sticky top-0 z-30 shrink-0">
+          <Topbar
+            tenantName={tenantName}
+            userName={userName}
+            onLogout={handleLogoutClick}
+            onMenuToggle={() => setMobileOpen(true)}
+          />
+        </div>
 
         {/* Page content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        <main className="flex-1 p-4 lg:p-6 overflow-y-auto">
           {children}
         </main>
       </div>

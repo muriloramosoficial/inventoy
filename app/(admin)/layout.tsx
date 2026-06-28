@@ -59,7 +59,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setShowLogoutConfirm(false);
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/login");
+    router.push("/");
   };
 
   if (loading) {
@@ -101,11 +101,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <div
         className={cn(
-          "flex-1 flex flex-col transition-all duration-200",
+          "flex-1 flex flex-col h-screen overflow-hidden transition-all duration-200",
           collapsed ? "lg:ml-16" : "lg:ml-56"
         )}
       >
-        <header className="h-14 border-b border-border-default bg-bg-secondary flex items-center justify-between px-4 shrink-0">
+        <header className="sticky top-0 z-30 h-14 border-b border-border-default bg-bg-secondary flex items-center justify-between px-4 shrink-0">
           <div className="flex items-center gap-3">
             <button
               className="lg:hidden p-1.5 rounded-[4px] text-text-muted hover:text-text-primary hover:bg-bg-surface-hover"

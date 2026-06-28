@@ -133,7 +133,7 @@ export default function AdminSettingsPage() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-semibold text-text-primary tracking-tight">Configuracoes</h1>
+        <h1 className="text-2xl font-semibold text-text-primary tracking-tight">Perfil</h1>
         <p className="text-sm text-text-muted mt-1">
           Gerencie seus dados de acesso ao painel administrativo
         </p>

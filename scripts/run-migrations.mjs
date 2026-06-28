@@ -13,14 +13,11 @@ const PAT = process.env.SUPABASE_PAT || readPATFromEnv();
 const PROJECT_REF = "mjkeznlmhtskrekywnfg";
 
 function readPATFromEnv() {
-  const envPaths = [resolve(__dirname, "../.env.local"), resolve(__dirname, "../.env")];
-  for (const p of envPaths) {
-    if (existsSync(p)) {
-      for (const line of readFileSync(p, "utf-8").split("\n")) {
-        const trimmed = line.trim();
-        if (trimmed.startsWith("SUPABASE_PAT=")) return trimmed.slice("SUPABASE_PAT=".length);
-      }
-    }
+  const envPath = resolve(__dirname, "../.env.local");
+  if (!existsSync(envPath)) return null;
+  for (const line of readFileSync(envPath, "utf-8").split("\n")) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("SUPABASE_PAT=")) return trimmed.slice("SUPABASE_PAT=".length);
   }
   return null;
 }

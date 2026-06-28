@@ -12,7 +12,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Dialog, DialogFooter } from "@/components/ui/dialog";
-import { Plus, Edit3, Archive, RotateCcw, Loader2, FolderOpen, Eye, EyeOff } from "lucide-react";
+import { Plus, Edit3, Archive, RotateCcw, Loader2, FolderOpen, Eye, EyeOff, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/ui/toast";
 import type { Category } from "@/types";
@@ -33,6 +33,7 @@ export default function CategoriesPage() {
   const [formDescription, setFormDescription] = useState("");
   const [formColor, setFormColor] = useState("#3ECF8E");
 
+  const [search, setSearch] = useState("");
   const [showArchived, setShowArchived] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -71,6 +72,11 @@ export default function CategoriesPage() {
     load();
     return () => { mounted = false; };
   }, [refreshKey, showArchived]);
+
+  const filteredCategories = categories.filter((cat) =>
+    cat.name.toLowerCase().includes(search.toLowerCase()) ||
+    (cat.description || "").toLowerCase().includes(search.toLowerCase())
+  );
 
   const resetForm = () => {
     setFormName("");
@@ -157,7 +163,7 @@ export default function CategoriesPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" size="sm" onClick={() => setShowArchived(!showArchived)}>
+          <Button variant="secondary" onClick={() => setShowArchived(!showArchived)}>
             {showArchived ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             {showArchived ? "Ocultar Arquivados" : "Mostrar Arquivados"}
           </Button>
@@ -173,6 +179,19 @@ export default function CategoriesPage() {
           {error}
         </div>
       )}
+
+      <div className="flex items-center gap-3 flex-wrap mb-4">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
+          <input
+            type="text"
+            placeholder="Buscar categoria..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full h-10 pl-10 pr-3 rounded-[4px] border border-border-default bg-bg-surface text-sm text-text-primary placeholder:text-text-muted-60 focus:border-brand-40 focus:ring-1 focus:ring-brand-20 transition-colors outline-none"
+          />
+        </div>
+      </div>
 
       <div className="rounded-[6px] border border-border-default overflow-hidden">
         <Table>
@@ -194,7 +213,7 @@ export default function CategoriesPage() {
                   </div>
                 </TableCell>
               </TableRow>
-            ) : categories.length === 0 ? (
+            ) : filteredCategories.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2 text-text-muted">
@@ -204,7 +223,7 @@ export default function CategoriesPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              categories.map((cat) => {
+              filteredCategories.map((cat) => {
                 const isArchived = !!cat.archived_at;
                 return (
                 <TableRow key={cat.id} className={isArchived ? "opacity-50" : ""}>

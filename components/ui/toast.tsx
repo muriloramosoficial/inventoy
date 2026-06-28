@@ -41,7 +41,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addToast = useCallback(
-    (message: string, variant: ToastVariant = "info", duration: number = 4000) => {
+    (message: string, variant: ToastVariant = "info", duration: number = 6000) => {
       const id = `toast-${++toastCounter}-${Date.now()}`;
       const toast: Toast = { id, message, variant, duration };
       setToasts((prev) => [...prev, toast]);
@@ -111,19 +111,19 @@ export function useToast(): ToastContextValue {
 
 const variantStyles: Record<ToastVariant, { container: string; icon: React.ReactNode }> = {
   success: {
-    container: "border-brand-30 bg-brand-5",
+    container: "border-brand-40 bg-brand-15",
     icon: <Check className="h-4 w-4 text-brand" />,
   },
   error: {
-    container: "border-brand-danger-30 bg-brand-danger-8",
+    container: "border-brand-danger-30 bg-brand-danger-15",
     icon: <AlertCircle className="h-4 w-4 text-brand-danger" />,
   },
   warning: {
-    container: "border-brand-warning-30 bg-brand-warning-8",
+    container: "border-brand-warning-30 bg-brand-warning-15",
     icon: <AlertTriangle className="h-4 w-4 text-brand-warning" />,
   },
   info: {
-    container: "border-brand-info-30 bg-brand-info-8",
+    container: "border-brand-info-30 bg-brand-info-15",
     icon: <Info className="h-4 w-4 text-brand-info" />,
   },
 };
@@ -135,7 +135,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
     <div
       className={cn(
         "pointer-events-auto flex items-start gap-3 w-80 rounded-[6px] border px-4 py-3 shadow-lg",
-        "animate-in slide-in-from-right-2 fade-in duration-200",
+        "animate-in slide-in-from-right-2 fade-in zoom-in-95 ease-out duration-300",
         style.container
       )}
     >

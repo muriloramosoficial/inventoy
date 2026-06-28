@@ -59,8 +59,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch Asaas API credentials from the tenant's database config
-    const asaasConfig = await getAsaasConfig(profile.tenant_id);
+    // Fetch the Platform Owner's (System Admin) tenant to get the Asaas credentials
+    const { data: adminProfile } = await supabase
+      .from("profiles")
+      .select("tenant_id")
+      .eq("is_system_admin", true)
+      .maybeSingle();
+
+    if (!adminProfile?.tenant_id) {
+      return NextResponse.redirect(
+        new URL("/subscription?error=platform_config_missing", request.url)
+      );
+    }
+
+    const asaasConfig = await getAsaasConfig(adminProfile.tenant_id);
 
     // Create ASAAS customer if doesn't exist
     let asaasCustomerId = tenant.payment_customer_id;

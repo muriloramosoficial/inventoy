@@ -11,7 +11,7 @@ import {
   Globe,
   User,
   LogOut,
-  Settings,
+  UserCircle,
   Menu,
 } from "lucide-react";
 
@@ -129,12 +129,12 @@ export function Topbar({
                 />
                 <div className="absolute right-0 top-full mt-1 z-20 w-48 rounded-[6px] border border-border-default bg-bg-secondary shadow-xl py-1">
                   <Link
-                    href="/settings"
+                    href="/profile"
                     onClick={() => setUserMenuOpen(false)}
                     className="flex items-center gap-2 w-full px-3 py-2 text-sm text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary transition-colors"
                   >
-                    <Settings className="h-4 w-4" />
-                    Configuracoes
+                    <UserCircle className="h-4 w-4" />
+                    Perfil
                   </Link>
                   <hr className="border-border-default my-1" />
                   <button

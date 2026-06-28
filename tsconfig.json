@@ -19,8 +19,13 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
-    }
+      "@/*": ["./*"],
+      "@core/*": ["./src/@core/*"],
+      "@modules/*": ["./src/modules/*"],
+      "@infra/*": ["./src/infrastructure/*"],
+      "@shared/*": ["./src/shared/*"]
+    },
+    "baseUrl": "."
   },
   "include": [
     "next-env.d.ts",

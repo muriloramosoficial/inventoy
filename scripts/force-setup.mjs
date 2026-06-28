@@ -10,17 +10,14 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 function loadEnv() {
-  const envPaths = [resolve(__dirname, "../.env.local"), resolve(__dirname, "../.env")];
-  for (const p of envPaths) {
-    if (existsSync(p)) {
-      const content = readFileSync(p, "utf-8");
-      for (const line of content.split("\n")) {
-        const trimmed = line.trim();
-        if (trimmed && !trimmed.startsWith("#")) {
-          const eqIdx = trimmed.indexOf("=");
-          if (eqIdx > 0) process.env[trimmed.slice(0, eqIdx)] = trimmed.slice(eqIdx + 1);
-        }
-      }
+  const envPath = resolve(__dirname, "../.env.local");
+  if (!existsSync(envPath)) return;
+  const content = readFileSync(envPath, "utf-8");
+  for (const line of content.split("\n")) {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith("#")) {
+      const eqIdx = trimmed.indexOf("=");
+      if (eqIdx > 0) process.env[trimmed.slice(0, eqIdx)] = trimmed.slice(eqIdx + 1);
     }
   }
 }

@@ -241,8 +241,8 @@ export default function AsaasConfigPage() {
 
           <div className="rounded-[4px] bg-bg-surface border border-border-default p-3">
             <p className="text-[11px] text-text-muted">
-              <strong className="text-text-secondary">Webhook Token:</strong>{" "}
-              Gere um token no painel do Asaas e adicione como <code className="bg-bg-surface px-1 rounded text-brand">ASAAS_WEBHOOK_TOKEN</code> no arquivo <code className="bg-bg-surface px-1 rounded text-brand">.env.local</code>.
+              <strong className="text-text-secondary">Webhook Secret:</strong>{" "}
+              Salve o secret do webhook diretamente neste painel. O sistema valida o token usando o valor armazenado no banco para Sandbox e Produção.
             </p>
           </div>
         </CardContent>

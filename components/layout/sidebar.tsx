@@ -9,12 +9,12 @@ import {
   Tags,
   MapPin,
   BarChart3,
-  Settings,
   ChevronLeft,
   ChevronRight,
   Box,
   Code2,
   ScanLine,
+  Settings,
 } from "lucide-react";
 
 interface NavItem {

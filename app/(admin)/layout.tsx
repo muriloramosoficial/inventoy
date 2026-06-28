@@ -6,7 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { cn } from "@/lib/utils";
-import { Shield, Menu, User, Settings, LogOut, Search, LayoutDashboard, AlertTriangle } from "lucide-react";
+import { Shield, Menu, User, UserCircle, LogOut, Search, LayoutDashboard, AlertTriangle } from "lucide-react";
 import { Dialog, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -152,8 +152,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       onClick={() => setUserMenuOpen(false)}
                       className="flex items-center gap-2 w-full px-3 py-2 text-sm text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary transition-colors"
                     >
-                      <Settings className="h-4 w-4" />
-                      Configuracoes
+                      <UserCircle className="h-4 w-4" />
+                      Perfil
                     </Link>
                     <Link
                       href="/admin"

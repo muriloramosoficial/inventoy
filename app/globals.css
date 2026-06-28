@@ -285,17 +285,26 @@ body {
 .bg-brand-danger-10 {
   background-color: color-mix(in srgb, var(--color-brand-danger) 10%, transparent);
 }
+.bg-brand-danger-15 {
+  background-color: color-mix(in srgb, var(--color-brand-danger) 15%, transparent);
+}
 .bg-brand-info-8 {
   background-color: color-mix(in srgb, var(--color-brand-info) 8%, transparent);
 }
 .bg-brand-info-10 {
   background-color: color-mix(in srgb, var(--color-brand-info) 10%, transparent);
 }
+.bg-brand-info-15 {
+  background-color: color-mix(in srgb, var(--color-brand-info) 15%, transparent);
+}
 .bg-brand-warning-8 {
   background-color: color-mix(in srgb, var(--color-brand-warning) 8%, transparent);
 }
 .bg-brand-warning-10 {
   background-color: color-mix(in srgb, var(--color-brand-warning) 10%, transparent);
+}
+.bg-brand-warning-15 {
+  background-color: color-mix(in srgb, var(--color-brand-warning) 15%, transparent);
 }
 
 .text-brand-8 {

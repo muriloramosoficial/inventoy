@@ -12,6 +12,9 @@ import { asaasWebhookSchema } from "@/lib/validations";
 //    PAYMENT_OVERDUE, PAYMENT_REFUNDED, PAYMENT_FAILED, PAYMENT_DELETED,
 //    SUBSCRIPTION_CANCELED, SUBSCRIPTION_UPDATED
 // 4. Generate a webhook token and set as ASAAS_WEBHOOK_TOKEN in .env.local
+//
+// NOTE: Asaas sends the token in the "asaas-access-token" header, NOT "asaas-webhook-token".
+// When configuring in Asaas, paste the same token value in the "Token de Autenticacao" field.
 
 interface AsaasPayment {
   id: string;
@@ -58,8 +61,36 @@ async function findTenantBySubscriptionId(subscriptionId: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const token = req.headers.get("asaas-webhook-token");
-    if (token !== process.env.ASAAS_WEBHOOK_TOKEN) {
+    const token = req.headers.get("asaas-access-token");
+
+    const supabase = getAdminClient();
+
+    // Try to fetch the webhook secret from the Platform Owner's tenant in the DB
+    let expectedToken = process.env.ASAAS_WEBHOOK_TOKEN;
+
+    const { data: adminProfile } = await supabase
+      .from("profiles")
+      .select("tenant_id")
+      .eq("is_system_admin", true)
+      .maybeSingle();
+
+    if (adminProfile?.tenant_id) {
+      const { data: adminTenant } = await supabase
+        .from("tenants")
+        .select("asaas_env, asaas_webhook_secret_sandbox, asaas_webhook_secret_production")
+        .eq("id", adminProfile.tenant_id)
+        .single();
+
+      if (adminTenant) {
+        const dbSecret = adminTenant.asaas_env === "production"
+          ? adminTenant.asaas_webhook_secret_production
+          : adminTenant.asaas_webhook_secret_sandbox;
+        if (dbSecret) expectedToken = dbSecret;
+      }
+    }
+
+    if (!expectedToken || token !== expectedToken) {
+      console.warn("[ASAAS Webhook] Invalid token received");
       return NextResponse.json({ error: "Invalid webhook token" }, { status: 401 });
     }
 
@@ -76,8 +107,6 @@ export async function POST(req: NextRequest) {
       paymentId: payment?.id,
       subscriptionId: subscription?.id || payment?.subscription,
     });
-
-    const supabase = getAdminClient();
 
     switch (event) {
       // Payment confirmed/received - activate subscription

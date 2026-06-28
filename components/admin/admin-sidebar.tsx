@@ -36,7 +36,7 @@ const adminNav: NavItem[] = [
   { label: "Planos", href: "/admin/plans", icon: <CreditCard className="h-4 w-4" /> },
   { label: "Assinaturas", href: "/admin/subscriptions", icon: <DollarSign className="h-4 w-4" /> },
   { label: "Financeiro", href: "/admin/billing", icon: <Receipt className="h-4 w-4" /> },
-  { label: "Configuracoes", href: "/admin/settings", icon: <Settings className="h-4 w-4" /> },
+  { label: "Perfil", href: "/admin/settings", icon: <Settings className="h-4 w-4" /> },
   { label: "Relatorios", href: "/admin/reports", icon: <BarChart3 className="h-4 w-4" /> },
   { label: "Atividades", href: "/admin/activity", icon: <Activity className="h-4 w-4" /> },
   { label: "Asaas", href: "/admin/asaas-config", icon: <Webhook className="h-4 w-4" /> },
@@ -50,7 +50,7 @@ const staffNav: NavItem[] = [
   { label: "Usuarios", href: "/admin/users", icon: <Users className="h-4 w-4" /> },
   { label: "Planos", href: "/admin/plans", icon: <CreditCard className="h-4 w-4" /> },
   { label: "Assinaturas", href: "/admin/subscriptions", icon: <DollarSign className="h-4 w-4" /> },
-  { label: "Configuracoes", href: "/admin/settings", icon: <Settings className="h-4 w-4" /> },
+  { label: "Perfil", href: "/admin/settings", icon: <Settings className="h-4 w-4" /> },
 ];
 
 interface AdminSidebarProps {

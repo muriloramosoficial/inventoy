@@ -35,6 +35,8 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
+              // 'unsafe-inline' needed for: inline theme script, Tailwind JIT
+              // 'unsafe-eval' needed for Next.js dev mode; can remove in production
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "style-src 'self' 'unsafe-inline'",
               `connect-src 'self' ${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://*.supabase.co"} https://api.asaas.com https://api-sandbox.asaas.com`,
@@ -45,6 +47,8 @@ const nextConfig: NextConfig = {
               "form-action 'self'",
               "frame-ancestors 'none'",
               "upgrade-insecure-requests",
+              // Monitor CSP violations
+              "report-uri /api/csp-violation",
             ].join("; "),
           },
         ],

@@ -226,7 +226,7 @@ export default function ProductsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" size="sm" onClick={() => setShowArchived(!showArchived)}>
+          <Button variant="secondary" onClick={() => setShowArchived(!showArchived)}>
             {showArchived ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             {showArchived ? "Ocultar Arquivados" : "Mostrar Arquivados"}
           </Button>

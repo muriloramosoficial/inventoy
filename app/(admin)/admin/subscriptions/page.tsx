@@ -22,6 +22,7 @@ import {
   Ban,
   Play,
   Search,
+  Copy,
 } from "lucide-react";
 
 interface SubscriptionRow {
@@ -41,7 +42,7 @@ export default function AdminSubscriptionsPage() {
   const [data, setData] = useState<SubscriptionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { error: toastError } = useToast();
+  const { success: toastSuccess, error: toastError } = useToast();
   const [search, setSearch] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -197,7 +198,21 @@ export default function AdminSubscriptionsPage() {
                   <TableCell>{statusBadge(r.subscription_status)}</TableCell>
                   <TableCell>
                     {r.subscription_id ? (
-                      <span className="text-xs font-mono text-text-muted">{r.subscription_id.substring(0, 12)}...</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs font-mono text-text-muted truncate max-w-[100px]" title={r.subscription_id}>
+                          {r.subscription_id}
+                        </span>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(r.subscription_id!);
+                            toastSuccess("ID copiado!");
+                          }}
+                          className="shrink-0 p-0.5 rounded text-text-muted hover:text-text-primary hover:bg-bg-surface transition-colors"
+                          title="Copiar ID"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </button>
+                      </div>
                     ) : (
                       <span className="text-xs text-text-muted">-</span>
                     )}

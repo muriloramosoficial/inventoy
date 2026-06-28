@@ -126,7 +126,8 @@ export default function MovementsPage() {
         />
       </div>
 
-      <div className="rounded-[6px] border border-border-default overflow-hidden">
+      {/* Desktop table */}
+      <div className="hidden md:block rounded-[6px] border border-border-default overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -221,6 +222,84 @@ export default function MovementsPage() {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="block md:hidden space-y-3">
+        {loading ? (
+          <div className="flex flex-col items-center gap-2 py-12 text-text-muted">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <p className="text-sm">Carregando movimentacoes...</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 py-12 text-text-muted">
+            <ClipboardListIcon className="h-8 w-8" />
+            <p className="text-sm">Nenhuma movimentacao encontrada</p>
+          </div>
+        ) : (
+          filtered.map((m) => {
+            const userName = m.user?.name || "Desconhecido";
+            const initials = userName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+            const fromName = m.from_location
+              ? [m.from_location.aisle, m.from_location.shelf].filter(Boolean).join("-S") || m.from_location.name
+              : "-";
+            const toName = m.to_location
+              ? [m.to_location.aisle, m.to_location.shelf].filter(Boolean).join("-S") || m.to_location.name
+              : "-";
+
+            return (
+              <div
+                key={m.id}
+                className="rounded-[6px] border border-border-default bg-bg-card p-4"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-bg-elevated flex items-center justify-center">
+                      <span className="text-[10px] font-medium text-text-muted">{initials}</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-text-primary truncate max-w-[160px]">{userName}</p>
+                      <p className="text-[10px] font-mono text-text-muted">{formatDate(m.created_at)}</p>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className={`text-base font-semibold font-mono ${
+                      m.type === "in" || m.type === "count" ? "text-brand" :
+                      m.type === "out" ? "text-brand-danger" : "text-text-primary"
+                    }`}>
+                      {m.quantity > 0 ? "+" : ""}{m.quantity}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 mb-2">
+                  <MovementIcon type={m.type} />
+                  <TechBadge
+                    variant={
+                      m.type === "in" ? "green" :
+                      m.type === "out" ? "red" :
+                      m.type === "transfer" ? "blue" : "yellow"
+                    }
+                  >
+                    {typeLabels[m.type] || m.type}
+                  </TechBadge>
+                  {m.product?.sku && (
+                    <span className="font-mono text-xs text-brand ml-auto">{m.product.sku}</span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 text-xs text-text-muted">
+                  {fromName !== "-" && (
+                    <span className="truncate">De: {fromName}</span>
+                  )}
+                  {toName !== "-" && (
+                    <><span>→</span><span className="truncate">{toName}</span></>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       <div className="flex items-center justify-between">

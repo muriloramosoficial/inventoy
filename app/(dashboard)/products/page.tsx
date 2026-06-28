@@ -177,21 +177,21 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-text-primary tracking-tight">Patrimonio</h1>
-          <p className="text-sm text-text-muted mt-1">
+      <div className="flex items-start sm:items-center justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl sm:text-2xl font-semibold text-text-primary tracking-tight">Patrimonio</h1>
+          <p className="text-xs sm:text-sm text-text-muted mt-0.5 sm:mt-1 truncate">
             {loading ? "Carregando..." : `${filtered.length} itens cadastrados`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={() => setShowArchived(!showArchived)}>
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <Button variant="secondary" size="sm" className="px-2 sm:px-3" onClick={() => setShowArchived(!showArchived)} title={showArchived ? "Ocultar Arquivados" : "Mostrar Arquivados"}>
             {showArchived ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            {showArchived ? "Ocultar Arquivados" : "Mostrar Arquivados"}
+            <span className="hidden sm:inline ml-1">{showArchived ? "Ocultar Arquivados" : "Mostrar Arquivados"}</span>
           </Button>
-          <Button onClick={openCreate}>
+          <Button size="sm" className="px-2 sm:px-3" onClick={openCreate}>
             <Plus className="h-4 w-4" />
-            Novo Item
+            <span className="hidden sm:inline ml-1">Novo Item</span>
           </Button>
         </div>
       </div>
@@ -202,8 +202,8 @@ export default function ProductsPage() {
         </div>
       )}
 
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
+      <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-[160px] sm:min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
           <input
             type="text"
@@ -239,7 +239,8 @@ export default function ProductsPage() {
         />
       </div>
 
-      <div className="rounded-[6px] border border-border-default overflow-hidden">
+      {/* Desktop table */}
+      <div className="hidden md:block rounded-[6px] border border-border-default overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -328,6 +329,84 @@ export default function ProductsPage() {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="block md:hidden space-y-3">
+        {loading ? (
+          <div className="flex flex-col items-center gap-2 py-12 text-text-muted">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <p className="text-sm">Carregando...</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 py-12 text-text-muted">
+            <Package className="h-8 w-8" />
+            <p className="text-sm">Nenhum item de patrimonio encontrado</p>
+          </div>
+        ) : (
+          filtered.map((p) => {
+            const isArchived = !!p.archived_at;
+            return (
+              <div
+                key={p.id}
+                className={`rounded-[6px] border ${isArchived ? "border-border-default opacity-50" : "border-border-default"} bg-bg-card p-4`}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-mono text-xs text-brand font-semibold">{p.asset_tag || "-"}</span>
+                      {isArchived && (
+                        <span className="text-[10px] font-medium text-text-muted bg-bg-surface px-1.5 py-0.5 rounded">ARQUIVADO</span>
+                      )}
+                    </div>
+                    <h3 className="text-sm font-medium text-text-primary truncate">{p.name}</h3>
+                  </div>
+                  <div className="flex items-center gap-0.5 shrink-0 ml-2">
+                    <Button variant="ghost" size="icon-sm" onClick={() => openEdit(p)} disabled={isArchived}>
+                      <Edit3 className="h-4 w-4" />
+                    </Button>
+                    {isArchived ? (
+                      <Button variant="ghost" size="icon-sm" onClick={() => handleUnarchive(p.id)} title="Desarquivar">
+                        <RotateCcw className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button variant="ghost" size="icon-sm" className="text-brand-danger hover:text-brand-danger" onClick={() => handleArchive(p.id)} title="Arquivar">
+                        <Archive className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1 text-xs">
+                  <div className="flex items-center gap-2 text-text-secondary">
+                    <span>{p.brand && p.model ? `${p.brand} ${p.model}` : p.brand || p.model || "-"}</span>
+                    {p.category?.name && <><span className="text-text-muted">·</span><span>{p.category.name}</span></>}
+                  </div>
+                  {p.responsible_user && (
+                    <p className="text-text-muted">Resp: {p.responsible_user}</p>
+                  )}
+                </div>
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-border-default">
+                  <TechBadge
+                    variant={
+                      p.condition === "excelente" || p.condition === "bom"
+                        ? "green"
+                        : p.condition === "regular"
+                        ? "yellow"
+                        : "red"
+                    }
+                  >
+                    {(p.condition || "bom").toUpperCase()}
+                  </TechBadge>
+                  {p.cost && (
+                    <span className="text-xs font-mono text-text-secondary">
+                      R$ {Number(p.cost).toFixed(2)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       <Dialog

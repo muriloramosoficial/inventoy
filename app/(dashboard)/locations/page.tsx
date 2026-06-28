@@ -165,7 +165,8 @@ export default function LocationsPage() {
         </div>
       </div>
 
-      <div className="rounded-[6px] border border-border-default overflow-hidden">
+      {/* Desktop table */}
+      <div className="hidden md:block rounded-[6px] border border-border-default overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -234,6 +235,67 @@ export default function LocationsPage() {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="block md:hidden space-y-3">
+        {loading ? (
+          <div className="flex flex-col items-center gap-2 py-12 text-text-muted">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <p className="text-sm">Carregando locais...</p>
+          </div>
+        ) : filteredLocations.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 py-12 text-text-muted">
+            <MapPin className="h-8 w-8" />
+            <p className="text-sm">Nenhum local encontrado</p>
+          </div>
+        ) : (
+          filteredLocations.map((loc) => {
+            const isArchived = !!loc.archived_at;
+            return (
+              <div
+                key={loc.id}
+                className={`rounded-[6px] border ${isArchived ? "border-border-default opacity-50" : "border-border-default"} bg-bg-card p-4`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-medium text-text-primary">
+                      {loc.name}
+                      {isArchived && (
+                        <span className="ml-2 text-[10px] font-medium text-text-muted bg-bg-surface px-1.5 py-0.5 rounded">ARQUIVADO</span>
+                      )}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      {loc.aisle && (
+                        <span className="font-mono text-xs text-brand">Corr: {loc.aisle}</span>
+                      )}
+                      {loc.shelf && (
+                        <span className="font-mono text-xs text-text-secondary">Est: {loc.shelf}</span>
+                      )}
+                    </div>
+                    {loc.description && (
+                      <p className="text-xs text-text-muted mt-1 truncate">{loc.description}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-0.5 shrink-0 ml-2">
+                    {isArchived ? (
+                      <Button variant="ghost" size="icon-sm" onClick={() => handleUnarchive(loc.id)} title="Desarquivar">
+                        <RotateCcw className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button variant="ghost" size="icon-sm" className="text-brand-danger hover:text-brand-danger" onClick={() => handleArchive(loc.id)} title="Arquivar">
+                        <Archive className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-border-default text-xs text-text-secondary">
+                  <span className="font-mono font-medium">{itemCountMap[loc.id] || 0}</span> itens neste local
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       <Dialog

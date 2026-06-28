@@ -216,7 +216,7 @@ export default function ReportsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         {reports.map((report) => {
           const ReportIcon = report.icon;
           const isGenerating = generating === report.id;
@@ -224,23 +224,24 @@ export default function ReportsPage() {
 
           return (
             <Card key={report.id}>
-              <CardHeader>
+              <CardHeader className="p-4 lg:p-5">
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-[4px] bg-brand-dim flex items-center justify-center">
-                      <ReportIcon className={`h-5 w-5 ${report.color}`} />
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <div className="w-9 h-9 md:w-10 md:h-10 rounded-[4px] bg-brand-dim flex items-center justify-center shrink-0">
+                      <ReportIcon className={`h-4 w-4 md:h-5 md:w-5 ${report.color}`} />
                     </div>
                     <div>
-                      <CardTitle>{report.title}</CardTitle>
-                      <CardDescription>{report.description}</CardDescription>
+                      <CardTitle className="text-sm md:text-base">{report.title}</CardTitle>
+                      <CardDescription className="text-xs md:text-sm">{report.description}</CardDescription>
                     </div>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap items-center gap-2">
+              <CardContent className="px-4 lg:px-5 pb-4 lg:pb-5">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   <Button
                     size="sm"
+                    className="w-full sm:w-auto"
                     onClick={() => handleGenerate(report)}
                     disabled={!!generating || !!exporting}
                   >
@@ -252,7 +253,7 @@ export default function ReportsPage() {
                     {isGenerating ? "Gerando..." : "Gerar"}
                   </Button>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-1 sm:flex-initial">
                     {exportFormats.map((fmt) => {
                       const FmtIcon = fmt.icon;
                       const isLoading = isExporting && exporting?.format === fmt.value;
@@ -261,10 +262,10 @@ export default function ReportsPage() {
                           key={fmt.value}
                           variant="secondary"
                           size="sm"
+                          className="flex-1 sm:flex-initial px-1.5 md:px-2"
                           onClick={() => handleExport(report, fmt.value)}
                           disabled={!!generating || !!exporting}
                           title={`Exportar como ${fmt.label}`}
-                          className="px-2"
                         >
                           {isLoading ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />

@@ -96,7 +96,6 @@ export default function DashboardLayout({
     { label: "Patrimonio", href: "/products", icon: <Package className="h-5 w-5" /> },
     { label: "Movimentos", href: "/movements", icon: <ArrowRightLeft className="h-5 w-5" /> },
     { label: "Scanner", href: "/scanner", icon: <ScanLine className="h-5 w-5" /> },
-    { label: "Config", href: "/settings", icon: <Settings className="h-5 w-5" /> },
   ];
 
   const mobileMenuItems = [

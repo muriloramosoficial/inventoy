@@ -80,9 +80,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: "Painel", href: "/admin", icon: <LayoutDashboard className="h-5 w-5" /> },
     { label: "Empresas", href: "/admin/tenants", icon: <Building2 className="h-5 w-5" /> },
     { label: "Usuarios", href: "/admin/users", icon: <Users className="h-5 w-5" /> },
-    { label: "Planos", href: "/admin/plans", icon: <BarChart3 className="h-5 w-5" /> },
-    { label: "Atividades", href: "/admin/activity", icon: <Activity className="h-5 w-5" /> },
-    { label: "Perfil", href: "/admin/settings", icon: <Settings className="h-5 w-5" /> },
+    { label: "Planos", href: "/admin/plans", icon: <CreditCard className="h-5 w-5" /> },
   ];
 
   const mobileMenuItems = [

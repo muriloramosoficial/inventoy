@@ -199,28 +199,28 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {[
           { label: "Total de Itens", value: metrics ? metrics.total_items.toLocaleString() : "-", accent: "border-t-brand", subtitle: "cadastrados" },
           { label: "Valor Total", value: metrics ? `R$ ${(metrics.total_sale_value / 1000).toFixed(1)}K` : "-", accent: "border-t-brand-info", subtitle: "valor de venda" },
           { label: "Manutencao Pendente", value: metrics ? String(metrics.low_stock_count) : "-", accent: "border-t-brand-warning", subtitle: "pendencias" },
           { label: "Movimentacoes Hoje", value: metrics ? String(metrics.movements_today) : "-", accent: "border-t-brand", subtitle: "hoje" },
         ].map((kpi) => (
-          <div key={kpi.label} className={cn("rounded-[6px] bg-bg-surface border border-border-default p-5 border-t-2", kpi.accent)}>
-            <p className="text-[11px] font-medium tracking-[0.12em] uppercase text-text-muted mb-2">{kpi.label}</p>
-            <p className="text-4xl font-semibold leading-none text-text-primary tracking-tight font-mono">{kpi.value}</p>
-            <p className="text-xs text-text-muted mt-2">{kpi.subtitle}</p>
+          <div key={kpi.label} className={cn("rounded-[6px] bg-bg-surface border border-border-default p-4 lg:p-5 border-t-2", kpi.accent)}>
+            <p className="text-[11px] font-medium tracking-[0.12em] uppercase text-text-muted mb-1.5 lg:mb-2">{kpi.label}</p>
+            <p className="text-3xl lg:text-4xl font-semibold leading-none text-text-primary tracking-tight font-mono">{kpi.value}</p>
+            <p className="text-xs text-text-muted mt-1.5 lg:mt-2">{kpi.subtitle}</p>
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="min-h-[320px] lg:col-span-2 rounded-[6px] bg-bg-surface border border-border-default p-5">
+        <div className="min-h-[280px] lg:min-h-[320px] lg:col-span-2 rounded-[6px] bg-bg-surface border border-border-default p-4 lg:p-5">
           <div className="h-full flex flex-col">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
               <div>
                 <h3 className="text-sm font-medium text-text-primary">
-                  Entradas x Saidas (Ultimos 15 Dias)
+                  Entradas x Saidas (15 Dias)
                 </h3>
                 <p className="text-xs text-text-muted mt-0.5">
                   Volume diario de movimentacao de inventario
@@ -268,10 +268,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="min-h-[320px] rounded-[6px] bg-bg-surface border border-border-default p-5">
+        <div className="min-h-[280px] lg:min-h-[320px] rounded-[6px] bg-bg-surface border border-border-default p-4 lg:p-5">
           <div className="h-full flex flex-col">
-            <div className="flex items-center gap-2 mb-4">
-              <AlertTriangle className="h-4 w-4 text-brand-warning" />
+            <div className="flex items-center gap-2 mb-3 lg:mb-4">
+              <AlertTriangle className="h-4 w-4 text-brand-warning shrink-0" />
               <h3 className="text-sm font-medium text-text-primary">Manutencoes Pendentes</h3>
               <TechBadge variant="yellow" className="ml-auto">{lowStockItems.length} itens</TechBadge>
             </div>
@@ -296,10 +296,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="min-h-[320px] rounded-[6px] bg-bg-surface border border-border-default p-5">
+        <div className="min-h-[280px] lg:min-h-[320px] rounded-[6px] bg-bg-surface border border-border-default p-4 lg:p-5">
           <div className="h-full flex flex-col">
-            <div className="flex items-center gap-2 mb-4">
-              <CalendarClock className="h-4 w-4 text-brand-info" />
+            <div className="flex items-center gap-2 mb-3 lg:mb-4">
+              <CalendarClock className="h-4 w-4 text-brand-info shrink-0" />
               <h3 className="text-sm font-medium text-text-primary">Vencimento Proximo</h3>
               <TechBadge variant="blue" className="ml-auto">{expiringItems.length} itens</TechBadge>
             </div>

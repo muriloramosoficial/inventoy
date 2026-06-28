@@ -178,9 +178,9 @@ export default function AdminActivityPage() {
             {filtered.map((entry) => {
               const config = typeConfig[entry.type] || { label: entry.type, color: "gray" as const, icon: <Activity className="h-3 w-3" /> };
               return (
-                <div key={entry.id} className="px-5 py-3 hover:bg-bg-surface/[0.02] transition-colors">
-                  <div className="flex items-start gap-3">
-                    <div className={`p-1.5 rounded-[4px] mt-0.5 ${
+                <div key={entry.id} className="px-3 sm:px-5 py-3 hover:bg-bg-surface/[0.02] transition-colors">
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className={`p-1.5 rounded-[4px] mt-0.5 shrink-0 ${
                       config.color === "green" ? "bg-brand-8" :
                       config.color === "red" ? "bg-brand-danger-10" :
                       config.color === "blue" ? "bg-brand-info-8" :
@@ -190,15 +190,17 @@ export default function AdminActivityPage() {
                       {config.icon}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm text-text-primary">{entry.description}</p>
-                        <TechBadge variant={config.color}>{config.label}</TechBadge>
+                      <div className="flex items-start sm:items-center gap-2 flex-col sm:flex-row">
+                        <p className="text-sm text-text-primary min-w-0">{entry.description}</p>
+                        <TechBadge variant={config.color} className="shrink-0 self-start sm:self-auto">{config.label}</TechBadge>
                       </div>
-                      <div className="flex items-center gap-2 mt-1 text-[10px] text-text-muted">
-                        <Building2 className="h-3 w-3" />
-                        {entry.tenant_name}
-                        <span>·</span>
-                        {entry.created_at ? new Date(entry.created_at).toLocaleString("pt-BR") : "-"}
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2 mt-1 text-[10px] text-text-muted">
+                        <span className="flex items-center gap-1">
+                          <Building2 className="h-3 w-3 shrink-0" />
+                          {entry.tenant_name}
+                        </span>
+                        <span className="hidden sm:inline">·</span>
+                        <span>{entry.created_at ? new Date(entry.created_at).toLocaleString("pt-BR") : "-"}</span>
                       </div>
                       {entry.details && entry.details !== entry.description && (
                         <p className="text-xs text-text-muted mt-1 italic">{entry.details}</p>

@@ -150,14 +150,14 @@ export default function AdminApiKeysPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-text-primary tracking-tight">API Keys</h1>
           <p className="text-sm text-text-muted mt-1">
             {loading ? "Carregando..." : `${keys.length} chaves ativas`}
           </p>
         </div>
-        <Button onClick={() => { setCreateModal(true); setCreatedKey(null); }}>
+        <Button onClick={() => { setCreateModal(true); setCreatedKey(null); }} className="w-full sm:w-auto shrink-0">
           <Plus className="h-4 w-4" />
           Nova Chave de API
         </Button>
@@ -175,13 +175,13 @@ export default function AdminApiKeysPage() {
 
       {/* Documentation */}
       <div className="rounded-[6px] border border-border-default bg-bg-card overflow-hidden">
-        <div className="p-4 border-b border-border-default bg-bg-surface">
+        <div className="px-3 sm:p-4 border-b border-border-default bg-bg-surface">
           <div className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-brand" />
+            <BookOpen className="h-4 w-4 text-brand shrink-0" />
             <h2 className="text-sm font-medium text-text-primary">Documentacao — API REST</h2>
           </div>
         </div>
-        <div className="p-4 space-y-4 text-xs text-text-muted">
+        <div className="p-3 sm:p-4 space-y-4 text-xs text-text-muted">
           <div>
             <h3 className="text-sm font-medium text-text-primary mb-2">O que sao Chaves de API?</h3>
             <p className="leading-relaxed">
@@ -201,9 +201,9 @@ export default function AdminApiKeysPage() {
             </ol>
           </div>
 
-          <div className="p-3 rounded-[4px] bg-bg-elevated border border-border-default font-mono text-xs">
-            <div className="text-text-muted mb-1">Exemplo de requisicao:</div>
-            <div className="text-text-secondary">
+          <div className="p-3 rounded-[4px] bg-bg-elevated border border-border-default font-mono text-[10px] sm:text-xs overflow-x-auto">
+            <div className="text-text-muted mb-1 whitespace-nowrap">Exemplo de requisicao:</div>
+            <div className="text-text-secondary whitespace-nowrap">
               <span className="text-brand">GET</span> https://www.invetoy.com.br/api/v1/products?limit=5<br />
               <span className="text-text-muted">Authorization:</span> <span className="text-brand">Bearer</span> <span className="text-text-primary">inv_abc123_def456</span>
             </div>
@@ -251,8 +251,8 @@ export default function AdminApiKeysPage() {
         </div>
       </div>
 
-      <div className="rounded-[6px] border border-border-default overflow-hidden">
-        <Table>
+      <div className="rounded-[6px] border border-border-default overflow-x-auto">
+        <Table className="min-w-[600px]">
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>

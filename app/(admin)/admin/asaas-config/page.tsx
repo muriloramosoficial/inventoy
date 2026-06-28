@@ -160,10 +160,10 @@ export default function AsaasConfigPage() {
           <CardDescription>Selecione o ambiente do Asaas que esta em uso</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={() => setConfig({ ...config, asaas_env: "sandbox" })}
-              className={`flex-1 p-4 rounded-[6px] border transition-all text-left ${
+              className={`flex-1 p-3 sm:p-4 rounded-[6px] border transition-all text-left ${
                 config.asaas_env === "sandbox"
                   ? "border-brand bg-brand-5"
                   : "border-border-default bg-bg-surface hover:border-[#444]"
@@ -171,13 +171,13 @@ export default function AsaasConfigPage() {
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-medium text-text-primary">Sandbox</span>
-                {config.asaas_env === "sandbox" && <Check className="h-4 w-4 text-brand" />}
+                {config.asaas_env === "sandbox" && <Check className="h-4 w-4 text-brand shrink-0" />}
               </div>
-              <p className="text-xs text-text-muted">Ambiente de testes. Nenhum pagamento real e processado.</p>
+              <p className="text-xs text-text-muted">Ambiente de testes</p>
             </button>
             <button
               onClick={() => setConfig({ ...config, asaas_env: "production" })}
-              className={`flex-1 p-4 rounded-[6px] border transition-all text-left ${
+              className={`flex-1 p-3 sm:p-4 rounded-[6px] border transition-all text-left ${
                 config.asaas_env === "production"
                   ? "border-brand bg-brand-5"
                   : "border-border-default bg-bg-surface hover:border-[#444]"
@@ -185,9 +185,9 @@ export default function AsaasConfigPage() {
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-medium text-text-primary">Producao</span>
-                {config.asaas_env === "production" && <Check className="h-4 w-4 text-brand" />}
+                {config.asaas_env === "production" && <Check className="h-4 w-4 text-brand shrink-0" />}
               </div>
-              <p className="text-xs text-text-muted">Ambiente real. Pagamentos processados normalmente.</p>
+              <p className="text-xs text-text-muted">Ambiente real. Pagamentos processados.</p>
             </button>
           </div>
         </CardContent>
@@ -210,21 +210,24 @@ export default function AsaasConfigPage() {
               <TechBadge variant="green">URL UNICA</TechBadge>
               <span className="text-xs text-text-muted">Funciona para Sandbox e Producao</span>
             </div>
-            <div className="flex gap-2">
-              <code className="flex-1 text-xs text-brand bg-bg-surface p-2.5 rounded-[4px] border border-border-default break-all font-mono">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <code className="flex-1 text-xs text-brand bg-bg-surface p-2.5 rounded-[4px] border border-border-default break-all font-mono max-w-full">
                 {webhookUrl}
               </code>
-              <Button variant="secondary" size="icon-sm" onClick={() => copyText(webhookUrl)}>
+              <Button variant="secondary" size="sm" onClick={() => copyText(webhookUrl)} className="w-full sm:w-auto shrink-0">
                 <Copy className="h-3.5 w-3.5" />
+                Copiar
               </Button>
             </div>
-            <p className="text-[11px] text-text-muted mt-2 flex items-center gap-1">
-              <ExternalLink className="h-3 w-3 shrink-0" />
-              Acesse{" "}
-              <a href="https://sandbox.asaas.com/configuracoes/webhooks" target="_blank" rel="noopener noreferrer" className="text-brand hover:underline">
-                sandbox.asaas.com/configuracoes/webhooks
-              </a>{" "}
-              e cadastre esta URL. Selecione os eventos abaixo.
+            <p className="text-[11px] text-text-muted mt-2 flex items-start sm:items-center gap-1">
+              <ExternalLink className="h-3 w-3 shrink-0 mt-0.5 sm:mt-0" />
+              <span>
+                Acesse{" "}
+                <a href="https://sandbox.asaas.com/configuracoes/webhooks" target="_blank" rel="noopener noreferrer" className="text-brand hover:underline">
+                  sandbox.asaas.com/configuracoes/webhooks
+                </a>{" "}
+                e cadastre esta URL.
+              </span>
             </p>
           </div>
 
@@ -368,7 +371,7 @@ export default function AsaasConfigPage() {
       </div>
 
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving}>
+        <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto">
           {saving ? "Salvando..." : "Salvar Configuracoes"}
         </Button>
       </div>

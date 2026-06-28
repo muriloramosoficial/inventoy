@@ -131,12 +131,12 @@ export default function AdminReportsPage() {
       )}
 
       {/* Growth chart */}
-      <div className="rounded-[6px] border border-border-default bg-bg-card p-5">
-        <div className="flex items-center gap-2 mb-5">
-          <TrendingUp className="h-4 w-4 text-text-muted" />
+      <div className="rounded-[6px] border border-border-default bg-bg-card p-4 lg:p-5">
+        <div className="flex items-center gap-2 mb-4 lg:mb-5">
+          <TrendingUp className="h-4 w-4 shrink-0 text-text-muted" />
           <h2 className="text-sm font-medium text-text-muted uppercase tracking-wider">Crescimento (6 meses)</h2>
         </div>
-        <div className="grid grid-cols-6 gap-3 h-32">
+        <div className="grid grid-cols-6 gap-2 sm:gap-3 h-24 sm:h-32">
           {growth.map((g) => {
             const h = (g.tenants / maxTenants) * 100;
             return (
@@ -153,17 +153,17 @@ export default function AdminReportsPage() {
             );
           })}
         </div>
-        <div className="flex items-center gap-4 mt-4 text-[10px] text-text-muted">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mt-4 text-[10px] text-text-muted">
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-brand-20" /> Tenants
+            <span className="w-2 h-2 rounded-full bg-brand-20 shrink-0" /> Tenants
           </span>
           <span>Crescimento mensal acumulado</span>
         </div>
       </div>
 
       {/* Plan distribution + tenant leaderboard */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="rounded-[6px] border border-border-default bg-bg-card p-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="rounded-[6px] border border-border-default bg-bg-card p-4 lg:p-5">
           <h2 className="text-sm font-medium text-text-muted uppercase tracking-wider mb-4">Planos</h2>
           <div className="space-y-3">
             {Object.entries(planCounts)
@@ -198,14 +198,13 @@ export default function AdminReportsPage() {
             <h2 className="text-sm font-medium text-text-muted uppercase tracking-wider">Empresas Mais Ativas</h2>
           </div>
           <div className="space-y-3">
-            {tenants.slice(0, 8).map((t, i) => (
-              <div key={t.tenant_id}>
-                <div className="flex items-center justify-between mb-1">
+            {tenants.slice(0, 8).map((t, i) => (                  <div key={t.tenant_id}>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-1 gap-1">
                   <span className="text-sm text-text-primary">
                     <span className="text-text-muted mr-2 text-xs">#{i + 1}</span>
                     {t.tenant_name}
                   </span>
-                  <div className="flex items-center gap-3 text-xs text-text-muted">
+                  <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-text-muted flex-wrap">
                     <span>{t.user_count} usuarios</span>
                     <span>{t.product_count} prod</span>
                     <span className="text-brand font-mono">{t.movement_count} movs</span>
@@ -224,18 +223,18 @@ export default function AdminReportsPage() {
       </div>
 
       {/* Full tenant table */}
-      <div className="rounded-[6px] border border-border-default bg-bg-card p-5">
-        <h2 className="text-sm font-medium text-text-muted uppercase tracking-wider mb-4">Todas as Empresas</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+      <div className="rounded-[6px] border border-border-default bg-bg-card p-4 lg:p-5">
+        <h2 className="text-sm font-medium text-text-muted uppercase tracking-wider mb-3 lg:mb-4">Todas as Empresas</h2>
+        <div className="overflow-x-auto -mx-1">
+          <table className="w-full text-sm min-w-[500px]">
             <thead>
               <tr className="border-b border-border-default">
-                <th className="text-left py-2 text-text-muted font-medium text-xs">Empresa</th>
-                <th className="text-left py-2 text-text-muted font-medium text-xs">Plano</th>
-                <th className="text-right py-2 text-text-muted font-medium text-xs">Users</th>
-                <th className="text-right py-2 text-text-muted font-medium text-xs">Produtos</th>
-                <th className="text-right py-2 text-text-muted font-medium text-xs">Locais</th>
-                <th className="text-right py-2 text-text-muted font-medium text-xs">Movimentacoes</th>
+                <th className="text-left py-2 text-text-muted font-medium text-xs whitespace-nowrap">Empresa</th>
+                <th className="text-left py-2 text-text-muted font-medium text-xs whitespace-nowrap">Plano</th>
+                <th className="text-right py-2 text-text-muted font-medium text-xs whitespace-nowrap">Users</th>
+                <th className="text-right py-2 text-text-muted font-medium text-xs whitespace-nowrap">Produtos</th>
+                <th className="text-right py-2 text-text-muted font-medium text-xs whitespace-nowrap">Locais</th>
+                <th className="text-right py-2 text-text-muted font-medium text-xs whitespace-nowrap">Movimentacoes</th>
               </tr>
             </thead>
             <tbody>

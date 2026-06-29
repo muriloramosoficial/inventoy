@@ -23,7 +23,6 @@ export default function ScannerPage() {
   const [cameraError, setCameraError] = useState("");
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [showSettings, setShowSettings] = useState(false);
-  const [previewKey, setPreviewKey] = useState(0);
   const lastScanRef = useRef<string>("");
   const mountedRef = useRef(true);
   const previewRef = useRef<HTMLDivElement>(null);
@@ -207,7 +206,7 @@ export default function ScannerPage() {
         </div>
       )}
 
-      {/* Camera Scanner */}
+      {/* Camera Scanner - Click to start/stop */}
       <div className="rounded-xl border border-border-default bg-bg-secondary overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b border-border-default bg-bg-secondary/50">
           <div className="flex items-center gap-3">
@@ -216,7 +215,7 @@ export default function ScannerPage() {
             </div>
             <div>
               <h3 className="font-semibold text-text-primary">Câmera</h3>
-              <p className="text-sm text-text-muted">Aponte para o código de barras</p>
+              <p className="text-sm text-text-muted">Toque na área abaixo para iniciar/parar a câmera</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -226,19 +225,6 @@ export default function ScannerPage() {
                 Escaneando...
               </div>
             )}
-            <Button
-              variant={isScanning ? "outline" : "primary"}
-              size="sm"
-              onClick={isScanning ? stopCamera : startCamera}
-              className="w-full sm:w-auto"
-              disabled={!!cameraError && !isScanning}
-            >
-              {isScanning ? (
-                <> <CameraOff className="h-3.5 w-3.5" /> Parar </>
-              ) : (
-                <> <Camera className="h-3.5 w-3.5" /> Iniciar Câmera </>
-              )}
-            </Button>
           </div>
         </div>
         {cameraError && (
@@ -257,17 +243,26 @@ export default function ScannerPage() {
         <div
           ref={previewRef}
           id="scanner-preview"
-          className={`w-full ${isScanning ? "min-h-[300px] sm:min-h-[400px]" : "min-h-[200px]"} rounded-none bg-black/60 transition-all`}
+          className={`w-full ${isScanning ? "min-h-[300px] sm:min-h-[400px]" : "min-h-[200px]"} rounded-none bg-black/60 transition-all cursor-pointer`}
+          onClick={isScanning ? stopCamera : startCamera}
         >
           {!isScanning && !cameraError && (
             <div className="w-full h-full flex flex-col items-center justify-center p-8">
-              <ScanLine className="h-16 w-16 text-text-muted/30 mb-4" />
+              <Camera className="h-16 w-16 text-text-muted/30 mb-4" />
               <p className="text-base text-text-muted text-center px-4">
-                Toque em "Iniciar Câmera" para escanear códigos de barras
+                Toque aqui para iniciar a câmera
               </p>
               <p className="text-xs text-text-muted/50 mt-2 text-center px-4">
                 Suporta: EAN-13, Code 128, UPC, QR Code, Data Matrix
               </p>
+            </div>
+          )}
+          {isScanning && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="bg-black/50 rounded-lg p-4 text-center">
+                <CameraOff className="h-8 w-8 text-white/70 mx-auto mb-2" />
+                <p className="text-white text-sm">Toque para parar a câmera</p>
+              </div>
             </div>
           )}
         </div>
@@ -379,7 +374,7 @@ export default function ScannerPage() {
         <div className="rounded-xl border-2 border-dashed border-border-default bg-bg-secondary/50 p-8 text-center">
           <Package className="h-16 w-16 mx-auto mb-4 opacity-30" />
           <p className="text-sm text-text-secondary">Nenhum item escaneado ainda</p>
-          <p className="text-xs text-text-muted mt-1">Toque em "Iniciar Câmera" ou digite um SKU manualmente</p>
+          <p className="text-xs text-text-muted mt-1">Toque na área da câmera para iniciar ou digite um SKU manualmente</p>
         </div>
       )}
     </div>

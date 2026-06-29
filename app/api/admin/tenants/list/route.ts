@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createAdminClient();
-
-    // Verify requesting user is a system admin
-    const { data: { user: adminUser } } = await supabase.auth.getUser();
+    // 1. Get user from request cookies (server client)
+    const supabaseServer = await createClient();
+    const { data: { user: adminUser } } = await supabaseServer.auth.getUser();
+    
     if (!adminUser) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
-    const { data: adminProfile } = await supabase
+    // 2. Check if user is system admin/staff (using server client for profile check)
+    const { data: adminProfile } = await supabaseServer
       .from("profiles")
       .select("is_system_admin, is_staff")
       .eq("id", adminUser.id)
@@ -21,8 +23,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
     }
 
-    // Fetch ALL tenants with counts (bypasses RLS via service role)
-    const { data: tenants, error: tenantsError } = await supabase
+    // 3. Use admin client (service role) to fetch ALL tenants bypassing RLS
+    const supabaseAdmin = createAdminClient();
+
+    const { data: tenants, error: tenantsError } = await supabaseAdmin
       .from("tenants")
       .select("id, name, slug, plan, subscription_status, payment_provider, created_at")
       .order("created_at", { ascending: false });
@@ -43,10 +47,10 @@ export async function GET(request: NextRequest) {
     const ids = tenantsList.map((t) => t.id);
     if (ids.length > 0) {
       const [usersRes, productsRes, locationsRes, movementsRes] = await Promise.all([
-        supabase.from("profiles").select("tenant_id").in("tenant_id", ids),
-        supabase.from("products").select("tenant_id").in("tenant_id", ids),
-        supabase.from("locations").select("tenant_id").in("tenant_id", ids),
-        supabase.from("movements").select("tenant_id").in("tenant_id", ids),
+        supabaseAdmin.from("profiles").select("tenant_id").in("tenant_id", ids),
+        supabaseAdmin.from("products").select("tenant_id").in("tenant_id", ids),
+        supabaseAdmin.from("locations").select("tenant_id").in("tenant_id", ids),
+        supabaseAdmin.from("movements").select("tenant_id").in("tenant_id", ids),
       ]);
 
       const userCounts: Record<string, number> = {};

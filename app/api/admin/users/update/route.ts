@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,15 +11,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "action e userId sao obrigatorios" }, { status: 400 });
     }
 
-    const supabase = createAdminClient();
-
-    // Verify requesting user is a system admin or staff
-    const { data: { user: adminUser } } = await supabase.auth.getUser();
+    // 1. Get user from request cookies (server client)
+    const supabaseServer = await createClient();
+    const { data: { user: adminUser } } = await supabaseServer.auth.getUser();
     if (!adminUser) {
       return NextResponse.json({ error: "Nao autenticado" }, { status: 401 });
     }
 
-    const { data: adminProfile } = await supabase
+    // 2. Check if user is system admin/staff
+    const { data: adminProfile } = await supabaseServer
       .from("profiles")
       .select("is_system_admin, is_staff")
       .eq("id", adminUser.id)
@@ -28,12 +29,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
     }
 
+    // 3. Use admin client (service role) for mutations bypassing RLS
+    const supabaseAdmin = createAdminClient();
+
     switch (action) {
       // ─── Toggle System Admin ───
       case "toggle-admin": {
         const { is_system_admin } = params;
 
-        const { error } = await supabase
+        const { error } = await supabaseAdmin
           .from("profiles")
           .update({ is_system_admin })
           .eq("id", userId);
@@ -47,7 +51,7 @@ export async function POST(request: NextRequest) {
       case "toggle-staff": {
         const { is_staff } = params;
 
-        const { error } = await supabase
+        const { error } = await supabaseAdmin
           .from("profiles")
           .update({ is_staff })
           .eq("id", userId);
@@ -65,7 +69,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: "Funcao invalida" }, { status: 400 });
         }
 
-        const { error } = await supabase
+        const { error } = await supabaseAdmin
           .from("profiles")
           .update({ role })
           .eq("id", userId);

@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createAdminClient();
-
-    // Verify requesting user is a system admin
-    const { data: { user: adminUser } } = await supabase.auth.getUser();
+    // 1. Get user from request cookies (server client)
+    const supabaseServer = await createClient();
+    const { data: { user: adminUser } } = await supabaseServer.auth.getUser();
+    
     if (!adminUser) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
-    const { data: adminProfile } = await supabase
+    // 2. Check if user is system admin/staff (using server client for profile check)
+    const { data: adminProfile } = await supabaseServer
       .from("profiles")
       .select("is_system_admin, is_staff")
       .eq("id", adminUser.id)
@@ -21,8 +23,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
     }
 
-    // Fetch ALL profiles with tenant info (bypasses RLS via service role)
-    const { data: profiles, error: profilesError } = await supabase
+    // 3. Use admin client (service role) to fetch ALL users bypassing RLS
+    const supabaseAdmin = createAdminClient();
+
+    const { data: profiles, error: profilesError } = await supabaseAdmin
       .from("profiles")
       .select(`
         id,
@@ -42,7 +46,7 @@ export async function GET(request: NextRequest) {
     if (profilesError) throw profilesError;
 
     // Fetch all tenants for lookup
-    const { data: tenants, error: tenantsError } = await supabase
+    const { data: tenants, error: tenantsError } = await supabaseAdmin
       .from("tenants")
       .select("id, name, plan, slug");
 

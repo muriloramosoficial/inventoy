@@ -115,7 +115,7 @@ function TenantCard({
           Gerenciar
         </Button>
         <Button
-          variant={t.subscription_status === "active" ? "destructive" : "default"}
+          variant={t.subscription_status === "active" ? "danger" : "secondary"}
           size="sm"
           className="flex-1 min-w-[120px]"
           onClick={() => toggleStatus(t)}

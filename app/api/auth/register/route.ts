@@ -5,8 +5,12 @@ import { checkRateLimit } from "@/lib/rate-limiter";
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting via Supabase
-    const rateLimit = await checkRateLimit(request);
+    // Rate limiting via in-memory store
+    const rateLimit = await checkRateLimit(
+      `POST:/api/auth/register:${request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'}`,
+      3,
+      300
+    );
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { error: "Muitas tentativas. Tente novamente em " + rateLimit.resetIn + " segundos." },

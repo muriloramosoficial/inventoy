@@ -25,6 +25,9 @@ const nextConfig: NextConfig = {
   // Compress with gzip
   compress: true,
 
+  // Disable static page generation for error pages to avoid WSL copy issue
+  output: "standalone",
+  
   // Security headers + Content Security Policy
   async headers() {
     return [

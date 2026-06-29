@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit } from "@/lib/rate-limiter";
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +25,6 @@ export async function GET(request: NextRequest) {
     }
 
     // 3. Rate limiting - max 30 requests per minute per admin
-    const { checkRateLimit } = await import('@/lib/rate-limiter');
     const rateLimitResult = await checkRateLimit(`admin:users:list:${adminUser.id}`, 30, 60);
     if (!rateLimitResult.allowed) {
       return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
@@ -71,15 +71,17 @@ export async function GET(request: NextRequest) {
       tenants: u.tenant_id ? tenantMap[u.tenant_id] || null : null,
     }));
 
-    // 5. Audit log
-    await supabaseAdmin.from('audit_log').insert({
-      admin_user_id: adminUser.id,
-      action: 'list_all_users',
-      target_table: 'profiles',
-      target_id: null,
-      metadata: { count: usersWithTenants.length },
-      created_at: new Date().toISOString(),
-    }).catch(() => {}); // Don't fail request if audit log fails
+    // 5. Audit log (don't fail request if audit log fails)
+    try {
+      await supabaseAdmin.from('audit_log').insert({
+        admin_user_id: adminUser.id,
+        action: 'list_all_users',
+        target_table: 'profiles',
+        target_id: null,
+        metadata: { count: usersWithTenants.length },
+        created_at: new Date().toISOString(),
+      });
+    } catch {}
 
     return NextResponse.json({ users: usersWithTenants });
   } catch (err) {

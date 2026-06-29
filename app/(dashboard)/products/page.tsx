@@ -167,7 +167,7 @@ export default function ProductsPage() {
   const handleUnarchive = async (id: string) => {
     try {
       const supabase = getBrowserClient();
-      const { error } = await supabase.from("products").update({ archived_at: null }).eq("id", id);
+      const { error } = await supabase.from("products").update({ deleted_at: null }).eq("id", id);
       if (error) throw error;
       refresh();
     } catch (err) {
@@ -274,7 +274,7 @@ export default function ProductsPage() {
               </TableRow>
             ) : (
               filtered.map((p) => {
-                const isArchived = !!p.archived_at;
+                const isArchived = !!p.deleted_at;
                 return (
                 <TableRow key={p.id} className={isArchived ? "opacity-50" : ""}>
                   <TableCell>
@@ -345,7 +345,7 @@ export default function ProductsPage() {
           </div>
         ) : (
           filtered.map((p) => {
-            const isArchived = !!p.archived_at;
+            const isArchived = !!p.deleted_at;
             return (
               <div
                 key={p.id}

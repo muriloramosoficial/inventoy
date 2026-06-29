@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect, useCallback } from "react";
 import { getBrowserClient } from "@infra/database/supabase/client";
 import type { PostgrestError } from "@supabase/supabase-js";
@@ -7,7 +5,7 @@ import type { Product } from "../../domain/product.types";
 import type { Category } from "../../domain/category.types";
 
 type ProductWithCategory = Product & { category?: Category };
-type ProductInsert = Omit<Product, "id" | "created_at" | "updated_at" | "archived_at">;
+type ProductInsert = Omit<Product, "id" | "created_at" | "updated_at" | "deleted_at">;
 type ProductUpdate = Partial<ProductInsert>;
 
 export function useProducts(tenantId?: string) {
@@ -29,7 +27,7 @@ export function useProducts(tenantId?: string) {
       try {
         const supabase = getBrowserClient();
         const query = supabase.from("products").select("*, category:categories(*)");
-        if (!showArchived) query.is("archived_at", null);
+        if (!showArchived) query.is("deleted_at", null);
         const [productResult, categoryResult] = await Promise.all([
           query,
           supabase.from("categories").select("*"),
@@ -72,7 +70,7 @@ export function useProducts(tenantId?: string) {
   const archive = useCallback(async (id: string) => {
     await getBrowserClient()
       .from("products")
-      .update({ archived_at: new Date().toISOString() })
+      .update({ deleted_at: new Date().toISOString() })
       .eq("id", id);
     refresh();
   }, [refresh]);

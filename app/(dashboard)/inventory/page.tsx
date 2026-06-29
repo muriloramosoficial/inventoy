@@ -84,7 +84,7 @@ export default function InventoryPage() {
         if (mounted) setItems((data || []) as InventoryWithRelations[]);
 
         // Also load locations for the filter
-        const { data: locs } = await supabase.from("locations").select("*").is("archived_at", null);
+                const { data: locs } = await supabase.from("locations").select("*").is("deleted_at", null);
         if (mounted) setLocations(locs || []);
       } catch (err) {
         if (mounted) setError(err instanceof Error ? err.message : "Erro ao carregar estoque");

@@ -7,7 +7,7 @@ export class SupabaseCategoryRepository extends SupabaseRepository {
       .from("categories")
       .select("*")
       .eq("tenant_id", tenantId)
-      .is("archived_at", null)
+      .is("deleted_at", null)
       .order("name");
 
     if (error) throw this.handleError(error);

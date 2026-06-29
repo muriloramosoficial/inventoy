@@ -5,5 +5,5 @@ export interface Category {
   description: string | null;
   color: string | null;
   created_at: string;
-  archived_at?: string | null;
+  deleted_at?: string | null;
 }

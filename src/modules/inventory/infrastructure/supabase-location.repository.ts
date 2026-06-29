@@ -7,7 +7,7 @@ export class SupabaseLocationRepository extends SupabaseRepository {
       .from("locations")
       .select("*")
       .eq("tenant_id", tenantId)
-      .is("archived_at", null)
+      .is("deleted_at", null)
       .order("name");
 
     if (error) throw this.handleError(error);

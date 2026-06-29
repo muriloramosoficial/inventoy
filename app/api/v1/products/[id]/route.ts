@@ -92,7 +92,7 @@ export async function DELETE(
 
     const { error } = await adminClient
       .from("products")
-      .update({ archived_at: new Date().toISOString() })
+      .update({ deleted_at: new Date().toISOString() })
       .eq("id", id)
       .eq("tenant_id", tenantId);
 

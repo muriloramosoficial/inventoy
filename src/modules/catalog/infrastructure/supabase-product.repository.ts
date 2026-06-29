@@ -24,7 +24,7 @@ export class SupabaseProductRepository extends SupabaseRepository implements IPr
       .eq("tenant_id", tenantId);
 
     if (!options.showArchived) {
-      query = query.is("archived_at", null);
+      query = query.is("deleted_at", null);
     }
     if (options.search) {
       query = query.or(`name.ilike.%${options.search}%,sku.ilike.%${options.search}%`);
@@ -62,7 +62,7 @@ export class SupabaseProductRepository extends SupabaseRepository implements IPr
   async archive(id: string): Promise<void> {
     const { error } = await this.getClient()
       .from("products")
-      .update({ archived_at: new Date().toISOString() })
+      .update({ deleted_at: new Date().toISOString() })
       .eq("id", id);
 
     if (error) throw this.handleError(error);

@@ -42,7 +42,7 @@ export default function LocationsPage() {
       try {
         const supabase = createClient();
         const query = supabase.from("locations").select("*");
-        if (!showArchived) query.is("archived_at", null);
+        if (!showArchived) query.is("deleted_at", null);
         const [locationsResult, itemsResult] = await Promise.all([
           query,
           supabase.from("inventory_items").select("location_id"),
@@ -104,7 +104,7 @@ export default function LocationsPage() {
     if (!confirm("Arquivar este local? Ele nao sera exibido nas listas padrao.")) return;
     try {
       const supabase = createClient();
-      const { error } = await supabase.from("locations").update({ archived_at: new Date().toISOString() }).eq("id", id);
+      const { error } = await supabase.from("locations").update({ deleted_at: new Date().toISOString() }).eq("id", id);
       if (error) throw error;
       setRefreshKey(k => k + 1);
     } catch (err) {
@@ -115,7 +115,7 @@ export default function LocationsPage() {
   const handleUnarchive = async (id: string) => {
     try {
       const supabase = createClient();
-      const { error } = await supabase.from("locations").update({ archived_at: null }).eq("id", id);
+      const { error } = await supabase.from("locations").update({ deleted_at: null }).eq("id", id);
       if (error) throw error;
       setRefreshKey(k => k + 1);
     } catch (err) {
@@ -199,7 +199,7 @@ export default function LocationsPage() {
               </TableRow>
             ) : (
               filteredLocations.map((loc) => {
-                const isArchived = !!loc.archived_at;
+                const isArchived = !!loc.deleted_at;
                 return (
                 <TableRow key={loc.id} className={isArchived ? "opacity-50" : ""}>
                   <TableCell className="font-medium">{loc.name}
@@ -251,7 +251,7 @@ export default function LocationsPage() {
           </div>
         ) : (
           filteredLocations.map((loc) => {
-            const isArchived = !!loc.archived_at;
+            const isArchived = !!loc.deleted_at;
             return (
               <div
                 key={loc.id}

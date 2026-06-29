@@ -14,7 +14,7 @@ export interface Product {
   cost: number | null;
   image_url: string | null;
   is_active: boolean;
-  archived_at?: string | null;
+  deleted_at?: string | null;
   created_at: string;
   updated_at: string;
   asset_tag: string | null;

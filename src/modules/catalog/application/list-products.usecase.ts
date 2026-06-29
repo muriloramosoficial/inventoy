@@ -33,7 +33,7 @@ export async function listProductsUseCase(
     .eq("tenant_id", tenantId);
 
   if (!filters.showArchived) {
-    query = query.is("archived_at", null);
+    query = query.is("deleted_at", null);
   }
 
   if (filters.search) {

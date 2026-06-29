@@ -48,7 +48,7 @@ export interface Category {
   description: string | null;
   color: string | null;
   created_at: string;
-  archived_at?: string | null;
+  deleted_at?: string | null;
 }
 
 export interface Location {
@@ -59,7 +59,7 @@ export interface Location {
   shelf: string | null;
   description: string | null;
   created_at: string;
-  archived_at?: string | null;
+  deleted_at?: string | null;
 }
 
 export interface Product {
@@ -76,7 +76,7 @@ export interface Product {
   cost: number | null;
   image_url: string | null;
   is_active: boolean;
-  archived_at?: string | null;
+  deleted_at?: string | null;
   created_at: string;
   updated_at: string;
   // Patrimonio

@@ -45,7 +45,7 @@ export default function CategoriesPage() {
       try {
         const supabase = createClient();
         const query = supabase.from("categories").select("*");
-        if (!showArchived) query.is("archived_at", null);
+        if (!showArchived) query.is("deleted_at", null);
         const [categoriesResult, productsResult] = await Promise.all([
           query,
           supabase.from("products").select("category_id"),
@@ -132,7 +132,7 @@ export default function CategoriesPage() {
     if (!confirm("Arquivar esta categoria? Ela nao sera exibida nas listas padrao.")) return;
     try {
       const supabase = createClient();
-      const { error } = await supabase.from("categories").update({ archived_at: new Date().toISOString() }).eq("id", id);
+      const { error } = await supabase.from("categories").update({ deleted_at: new Date().toISOString() }).eq("id", id);
       if (error) throw error;
       setRefreshKey(k => k + 1);
     } catch (err) {
@@ -143,7 +143,7 @@ export default function CategoriesPage() {
   const handleUnarchive = async (id: string) => {
     try {
       const supabase = createClient();
-      const { error } = await supabase.from("categories").update({ archived_at: null }).eq("id", id);
+      const { error } = await supabase.from("categories").update({ deleted_at: null }).eq("id", id);
       if (error) throw error;
       setRefreshKey(k => k + 1);
     } catch (err) {
@@ -225,7 +225,7 @@ export default function CategoriesPage() {
               </TableRow>
             ) : (
               filteredCategories.map((cat) => {
-                const isArchived = !!cat.archived_at;
+                const isArchived = !!cat.deleted_at;
                 return (
                 <TableRow key={cat.id} className={isArchived ? "opacity-50" : ""}>
                   <TableCell>
@@ -283,7 +283,7 @@ export default function CategoriesPage() {
           </div>
         ) : (
           filteredCategories.map((cat) => {
-            const isArchived = !!cat.archived_at;
+            const isArchived = !!cat.deleted_at;
             return (
               <div
                 key={cat.id}

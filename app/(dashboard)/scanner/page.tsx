@@ -23,9 +23,10 @@ export default function ScannerPage() {
   const [cameraError, setCameraError] = useState("");
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [showSettings, setShowSettings] = useState(false);
-  const previewKey = useRef(0);
+  const [previewKey, setPreviewKey] = useState(0);
   const lastScanRef = useRef<string>("");
   const mountedRef = useRef(true);
+  const previewRef = useRef<HTMLDivElement>(null);
 
   const stopCamera = useCallback(async () => {
     if (scanner && isScanning) {
@@ -47,11 +48,15 @@ export default function ScannerPage() {
       try { await scanner.stop(); } catch {}
     }
 
-    // Force remount of preview container to clear any leftover DOM
-    previewKey.current += 1;
+    // Wait for DOM to be ready
+    if (!previewRef.current) {
+      console.warn("[Scanner] Preview ref not ready");
+      setCameraError("Elemento de preview não encontrado. Tente novamente.");
+      return;
+    }
 
     try {
-      const html5QrCode = new Html5Qrcode(`scanner-preview-${previewKey.current}`);
+      const html5QrCode = new Html5Qrcode("scanner-preview");
       setScanner(html5QrCode);
 
       await html5QrCode.start(
@@ -104,6 +109,14 @@ export default function ScannerPage() {
     };
   }, [stopCamera]);
 
+  // Re-start camera when facing mode changes
+  useEffect(() => {
+    if (isScanning) {
+      stopCamera();
+      setTimeout(startCamera, 100);
+    }
+  }, [facingMode]);
+
   const handleScan = useCallback((value: string) => {
     const cleanSku = value.trim().toUpperCase();
     if (!cleanSku || cleanSku === lastScanRef.current) return;
@@ -118,17 +131,10 @@ export default function ScannerPage() {
     };
 
     setScanResults((prev) => [result, ...prev]);
-    // Vibração de feedback (se suportado)
     if ("vibrate" in navigator) {
       navigator.vibrate(found ? [100] : [50, 50, 50]);
     }
   }, []);
-
-  const handleManualSubmit = () => {
-    if (lastScanRef.current) {
-      // Already handled by onKeyDown
-    }
-  };
 
   const clearHistory = () => {
     setScanResults([]);
@@ -175,14 +181,14 @@ export default function ScannerPage() {
                 <div className="flex gap-2">
                   <Button
                     variant={facingMode === "environment" ? "primary" : "outline"}
-                    onClick={() => { setFacingMode("environment"); stopCamera(); setTimeout(startCamera, 100); }}
+                    onClick={() => { setFacingMode("environment"); }}
                     className="flex-1"
                   >
                     Traseira
                   </Button>
                   <Button
                     variant={facingMode === "user" ? "primary" : "outline"}
-                    onClick={() => { setFacingMode("user"); stopCamera(); setTimeout(startCamera, 100); }}
+                    onClick={() => { setFacingMode("user"); }}
                     className="flex-1"
                   >
                     Frontal
@@ -225,6 +231,7 @@ export default function ScannerPage() {
               size="sm"
               onClick={isScanning ? stopCamera : startCamera}
               className="w-full sm:w-auto"
+              disabled={!!cameraError && !isScanning}
             >
               {isScanning ? (
                 <> <CameraOff className="h-3.5 w-3.5" /> Parar </>
@@ -240,7 +247,7 @@ export default function ScannerPage() {
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span className="flex-1">{cameraError}</span>
               {cameraError.includes("configuração alternativa") && (
-                <Button variant="ghost" size="sm" onClick={() => { setFacingMode("user"); startCamera(); }}>
+                <Button variant="ghost" size="sm" onClick={() => { setFacingMode("user"); }}>
                   Tentar novamente
                 </Button>
               )}
@@ -248,7 +255,8 @@ export default function ScannerPage() {
           </div>
         )}
         <div
-          id={`scanner-preview-${previewKey.current}`}
+          ref={previewRef}
+          id="scanner-preview"
           className={`w-full ${isScanning ? "min-h-[300px] sm:min-h-[400px]" : "min-h-[200px]"} rounded-none bg-black/60 transition-all`}
         >
           {!isScanning && !cameraError && (

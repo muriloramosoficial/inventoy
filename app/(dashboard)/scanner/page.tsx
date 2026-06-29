@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Package, CheckCircle, AlertCircle, History, Camera, CameraOff, ScanLine, Settings, RotateCcw } from "lucide-react";
+import { Package, CheckCircle, AlertCircle, History, Camera, CameraOff, ScanLine, Settings, RotateCcw, Video, VideoOff, ShieldAlert } from "lucide-react";
 import { TechBadge } from "@/components/tech-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,11 +21,20 @@ export default function ScannerPage() {
   const [scanner, setScanner] = useState<Html5Qrcode | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [cameraError, setCameraError] = useState("");
+  const [cameraPermission, setCameraPermission] = useState<PermissionState>("prompt");
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [showSettings, setShowSettings] = useState(false);
   const lastScanRef = useRef<string>("");
   const mountedRef = useRef(true);
   const previewRef = useRef<HTMLDivElement>(null);
+
+  // Check camera permission on mount
+  useEffect(() => {
+    navigator.permissions.query({ name: "camera" as PermissionName }).then((perm) => {
+      setCameraPermission(perm.state);
+      perm.onchange = () => setCameraPermission(perm.state);
+    });
+  }, []);
 
   const stopCamera = useCallback(async () => {
     if (scanner && isScanning) {
@@ -54,6 +63,12 @@ export default function ScannerPage() {
       return;
     }
 
+    // Check permission first
+    if (cameraPermission === "denied") {
+      setCameraError("Permissão de câmera negada. Clique no ícone de câmera/escudo na barra de endereço do navegador e permita o acesso.");
+      return;
+    }
+
     try {
       const html5QrCode = new Html5Qrcode("scanner-preview");
       setScanner(html5QrCode);
@@ -79,13 +94,13 @@ export default function ScannerPage() {
       
       let errorMessage = "Não foi possível acessar a câmera. ";
       if (error.name === "NotAllowedError" || error.message.includes("permission")) {
-        errorMessage += "Verifique as permissões do navegador e permita acesso à câmera.";
+        errorMessage += "Permissão negada. Clique no ícone de câmera 📷 ou escudo 🛡️ na barra de endereço do navegador e permita o acesso.";
       } else if (error.name === "NotFoundError" || error.message.includes("no camera")) {
-        errorMessage += "Nenhuma câmera encontrada neste dispositivo.";
+        errorMessage += "Nenhuma câmera encontrada. Verifique se o dispositivo tem câmera e ela não está sendo usada por outro app.";
       } else if (error.name === "NotReadableError" || error.message.includes("busy")) {
-        errorMessage += "A câmera está sendo usada por outro aplicativo.";
+        errorMessage += "A câmera está sendo usada por outro aplicativo. Feche outros apps que usam câmera.";
       } else if (error.name === "OverconstrainedError") {
-        errorMessage += "A câmera não suporta as configurações solicitadas. Tentando configuração alternativa...";
+        errorMessage += "A câmera não suporta a configuração. Tentando câmera frontal...";
         setTimeout(() => {
           setFacingMode("user");
           startCamera();
@@ -98,7 +113,7 @@ export default function ScannerPage() {
       setIsScanning(false);
       setScanner(null);
     }
-  }, [scanner, facingMode]);
+  }, [scanner, facingMode, cameraPermission]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -194,6 +209,20 @@ export default function ScannerPage() {
                   </Button>
                 </div>
               </div>
+              <div className="pt-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">Permissão</label>
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-bg-surface">
+                  {cameraPermission === "granted" && (
+                    <> <Video className="h-4 w-4 text-brand" /> <span className="text-sm text-brand">Permitida</span> </>
+                  )}
+                  {cameraPermission === "prompt" && (
+                    <> <VideoOff className="h-4 w-4 text-brand-warning" /> <span className="text-sm text-brand-warning">Pendente</span> </>
+                  )}
+                  {cameraPermission === "denied" && (
+                    <> <ShieldAlert className="h-4 w-4 text-brand-danger" /> <span className="text-sm text-brand-danger">Negada</span> </>
+                  )}
+                </div>
+              </div>
               <Button
                 variant="outline"
                 className="w-full"
@@ -232,9 +261,9 @@ export default function ScannerPage() {
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span className="flex-1">{cameraError}</span>
-              {cameraError.includes("configuração alternativa") && (
-                <Button variant="ghost" size="sm" onClick={() => { setFacingMode("user"); }}>
-                  Tentar novamente
+              {cameraError.includes("Permissão negada") && (
+                <Button variant="ghost" size="sm" onClick={() => { /* instructions in error */ }}>
+                  Como permitir
                 </Button>
               )}
             </div>

@@ -43,6 +43,94 @@ interface TenantRow {
   location_count?: number;
 }
 
+// TenantCard component for mobile view
+interface TenantCardProps {
+  t: TenantRow;
+  openEdit: (t: TenantRow) => void;
+  toggleStatus: (t: TenantRow) => void;
+  menu: ReturnType<typeof useDropdownMenu>;
+}
+
+function TenantCard({
+  t,
+  openEdit,
+  toggleStatus,
+  menu,
+}: TenantCardProps) {
+  const statusBadge = t.subscription_status === "active" ? (
+    <TechBadge variant="green">ATIVO</TechBadge>
+  ) : t.subscription_status === "trialing" ? (
+    <TechBadge variant="blue">TRIAL</TechBadge>
+  ) : t.subscription_status === "canceled" ? (
+    <TechBadge variant="red">CANCELADO</TechBadge>
+  ) : t.subscription_status === "past_due" ? (
+    <TechBadge variant="yellow">PAGAMENTO PENDENTE</TechBadge>
+  ) : (
+    <TechBadge variant="gray">DESCONHECIDO</TechBadge>
+  );
+
+  const planBadge = (
+    <TechBadge variant={t.plan === "pro" ? "green" : t.plan === "starter" ? "blue" : "gray"}>
+      {t.plan?.toUpperCase()}
+    </TechBadge>
+  );
+
+  return (
+    <div className="rounded-[6px] border border-border-default bg-bg-card p-4 transition-all">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="font-medium text-text-primary truncate">{t.name}</p>
+            <span className="text-[10px] text-text-muted truncate">{t.slug}</span>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap mt-2 text-xs text-text-muted">
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-3" aria-hidden="true">👥</span>
+              {t.user_count || 0} usuários
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-3" aria-hidden="true">📦</span>
+              {t.product_count || 0} produtos
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-3" aria-hidden="true">🔄</span>
+              {t.movement_count || 0} movs
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {statusBadge}
+          {planBadge}
+        </div>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1 min-w-[120px]"
+          onClick={() => openEdit(t)}
+        >
+          <span className="w-3.5 h-3.5" aria-hidden="true">⚙️</span>
+          Gerenciar
+        </Button>
+        <Button
+          variant={t.subscription_status === "active" ? "destructive" : "default"}
+          size="sm"
+          className="flex-1 min-w-[120px]"
+          onClick={() => toggleStatus(t)}
+        >
+          {t.subscription_status === "active" ? (
+            <> <span className="w-3.5 h-3.5" aria-hidden="true">⏸️</span> Suspender </>
+          ) : (
+            <> <span className="w-3.5 h-3.5" aria-hidden="true">▶️</span> Ativar </>
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminTenantsPage() {
   const [tenants, setTenants] = useState<TenantRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -152,7 +240,21 @@ export default function AdminTenantsPage() {
         />
       </div>
 
-      <div className="rounded-[6px] border border-border-default overflow-x-auto">
+      {/* Mobile Card View - Stacked cards on mobile, hidden on desktop */}
+      <div className="block lg:hidden space-y-3">
+        {filtered.map((t) => (
+          <TenantCard
+            key={t.id}
+            t={t}
+            openEdit={openEdit}
+            toggleStatus={toggleStatus}
+            menu={menu}
+          />
+        ))}
+      </div>
+
+      {/* Desktop Table View - Hidden on mobile */}
+      <div className="hidden lg:block rounded-[6px] border border-border-default overflow-x-auto">
         <Table className="min-w-[700px]">
           <TableHeader>
             <TableRow>
@@ -209,17 +311,18 @@ export default function AdminTenantsPage() {
                   <TableCell className="text-center font-mono text-sm text-text-secondary">{t.movement_count || 0}</TableCell>
                   <TableCell className="text-xs text-text-muted">
                     {t.created_at ? new Date(t.created_at).toLocaleDateString("pt-BR") : "-"}
-                  </TableCell>                    <TableCell>
-                      <div className="relative">
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={(e) => menu.toggle(t.id, e)}
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+                  </TableCell>
+                  <TableCell>
+                    <div className="relative">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={(e) => menu.toggle(t.id, e)}
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -271,6 +374,7 @@ export default function AdminTenantsPage() {
           </DialogFooter>
         </div>
       </Dialog>
+
       {/* Dropdown menu using useDropdownMenu hook */}
       {menu.openId && menu.menuPos && (() => {
         const t = tenants.find((x) => x.id === menu.openId);

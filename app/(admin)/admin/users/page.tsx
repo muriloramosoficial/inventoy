@@ -51,6 +51,219 @@ interface UserRow {
 
 type ModalType = "password" | "suspend" | "unsuspend" | "ban" | "unban" | null;
 
+// UserCard component for mobile view
+interface UserCardProps {
+  u: UserRow;
+  tenant: { name: string; plan: string; slug: string } | null;
+  disabled: boolean;
+  editingRole: string | null;
+  newRole: string;
+  updating: string | null;
+  setEditingRole: (id: string | null) => void;
+  setNewRole: (role: string) => void;
+  changeRole: (userId: string, role: string) => void;
+  openModal: (u: UserRow, type: ModalType) => void;
+  toggleAdmin: (userId: string, currentValue: boolean) => void;
+  toggleStaff: (userId: string, currentValue: boolean) => void;
+  menu: ReturnType<typeof useDropdownMenu>;
+}
+
+function UserCard({
+  u,
+  tenant,
+  disabled,
+  editingRole,
+  newRole,
+  updating,
+  setEditingRole,
+  setNewRole,
+  changeRole,
+  openModal,
+  toggleAdmin,
+  toggleStaff,
+  menu,
+}: UserCardProps) {
+  const statusBadge = u.status === "banned" ? (
+    <TechBadge variant="red">BANIDO</TechBadge>
+  ) : u.status === "suspended" ? (
+    <TechBadge variant="yellow">SUSPENSO</TechBadge>
+  ) : (
+    <TechBadge variant="green">ATIVO</TechBadge>
+  );
+
+  const adminBadge = u.is_system_admin ? (
+    <TechBadge variant="red">ADMIN</TechBadge>
+  ) : u.is_staff ? (
+    <TechBadge variant="blue">STAFF</TechBadge>
+  ) : (
+    <span className="text-[10px] text-text-muted">-</span>
+  );
+
+  const roleBadge = (
+    <TechBadge variant={u.role === "admin" ? "green" : u.role === "manager" ? "blue" : "gray"}>
+      {u.role?.toUpperCase() || "USUARIO"}
+    </TechBadge>
+  );
+
+  return (
+    <div className={`rounded-[6px] border border-border-default bg-bg-card p-4 transition-all ${disabled ? "opacity-60" : ""}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="font-medium text-text-primary truncate">{u.name || "-"}</p>
+            <span className="text-[10px] text-text-muted truncate">{u.email}</span>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap mt-2 text-xs text-text-muted">
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-3" aria-hidden="true">🏢</span>
+              {tenant?.name || "-"}
+            </span>
+            <span className="flex items-center gap-1">
+              <TechBadge variant={tenant?.plan === "pro" ? "green" : tenant?.plan === "starter" ? "blue" : "gray"} className="text-[9px] py-0.5 px-1.5">
+                {tenant?.plan?.toUpperCase() || "-"}
+              </TechBadge>
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {statusBadge}
+          {adminBadge}
+        </div>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {/* Role */}
+        <div className="flex items-center gap-2">
+          {editingRole === u.id ? (
+            <div className="flex items-center gap-2">
+              <select
+                value={newRole}
+                onChange={(e) => setNewRole(e.target.value)}
+                className="h-8 px-2 rounded-[4px] border border-border-default bg-bg-surface text-xs text-text-primary outline-none focus:border-brand-20"
+              >
+                <option value="user">Usuario</option>
+                <option value="admin">Administrador</option>
+                <option value="manager">Gerente</option>
+                <option value="operator">Operador</option>
+              </select>
+              <button
+                onClick={() => changeRole(u.id, newRole)}
+                disabled={updating === u.id}
+                className="p-1 rounded text-brand hover:bg-brand-8"
+              >
+                <Check className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => setEditingRole(null)}
+                className="p-1 rounded text-text-muted hover:bg-bg-surface"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => { setEditingRole(u.id); setNewRole(u.role || "user"); }}
+              className="group flex items-center gap-1.5 hover:bg-bg-surface rounded px-2 py-1 transition-colors"
+            >
+              {roleBadge}
+              <span className="text-[10px] text-text-muted group-hover:text-text-muted">editar</span>
+            </button>
+          )}
+
+          {/* Actions dropdown */}
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={(e) => menu.toggle(u.id, e)}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Dropdown menu */}
+        {menu.openId === u.id && menu.menuPos && (
+          <>
+            <MenuBackdrop onClick={menu.close} />
+            <MenuPanel menuPos={menu.menuPos} direction={menu.direction} width="w-56">
+              {/* Toggle system admin */}
+              <MenuItem
+                onClick={() => { menu.close(); toggleAdmin(u.id, u.is_system_admin); }}
+                disabled={updating === u.id || disabled}
+              >
+                {u.is_system_admin ? (
+                  <> <ShieldOff className="h-3.5 w-3.5" /> Remover admin do sistema </>
+                ) : (
+                  <> <Shield className="h-3.5 w-3.5" /> Tornar admin do sistema </>
+                )}
+              </MenuItem>
+
+              {/* Toggle staff */}
+              <MenuItem
+                onClick={() => { menu.close(); toggleStaff(u.id, u.is_staff); }}
+                disabled={updating === u.id || disabled}
+              >
+                {u.is_staff ? (
+                  <> <UserX className="h-3.5 w-3.5" /> Remover funcionario </>
+                ) : (
+                  <> <UserCheck className="h-3.5 w-3.5" /> Tornar funcionario </>
+                )}
+              </MenuItem>
+
+              {/* Change password */}
+              <MenuItem
+                onClick={() => openModal(u, "password")}
+                disabled={disabled}
+              >
+                <Lock className="h-3.5 w-3.5" /> Alterar senha
+              </MenuItem>
+
+              {/* Divider */}
+              <div className="border-t border-border-default my-1" />
+
+              {/* Suspend / Unsuspend */}
+              {u.status === "suspended" ? (
+                <MenuItem
+                  onClick={() => openModal(u, "unsuspend")}
+                  className="text-brand hover:bg-brand-dim"
+                >
+                  <UserCheck className="h-3.5 w-3.5" /> Reativar usuario
+                </MenuItem>
+              ) : (
+                <MenuItem
+                  onClick={() => openModal(u, "suspend")}
+                  className="text-brand-warning hover:bg-brand-warning-8"
+                  disabled={disabled}
+                >
+                  <UserX className="h-3.5 w-3.5" /> Suspender
+                </MenuItem>
+              )}
+
+              {/* Ban / Unban */}
+              {u.status === "banned" ? (
+                <MenuItem
+                  onClick={() => openModal(u, "unban")}
+                >
+                  <UserCheck className="h-3.5 w-3.5" /> Remover banimento
+                </MenuItem>
+              ) : (
+                <MenuItem
+                  onClick={() => openModal(u, "ban")}
+                  className="text-brand-danger hover:bg-brand-danger-8"
+                  disabled={disabled}
+                >
+                  <Ban className="h-3.5 w-3.5" /> Banir
+                </MenuItem>
+              )}
+            </MenuPanel>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -279,7 +492,34 @@ export default function AdminUsersPage() {
         </Button>
       </div>
 
-      <div className="rounded-[6px] border border-border-default overflow-x-auto">
+      {/* Mobile Card View - Stacked cards on mobile, hidden on desktop */}
+      <div className="block lg:hidden space-y-3">
+        {filtered.map((u) => {
+          const tenant = getTenant(u);
+          const disabled = isUserDisabled(u);
+          return (
+            <UserCard
+              key={u.id}
+              u={u}
+              tenant={tenant}
+              disabled={disabled}
+              editingRole={editingRole}
+              newRole={newRole}
+              updating={updating}
+              setEditingRole={setEditingRole}
+              setNewRole={setNewRole}
+              changeRole={changeRole}
+              openModal={openModal}
+              toggleAdmin={toggleAdmin}
+              toggleStaff={toggleStaff}
+              menu={menu}
+            />
+          );
+        })}
+      </div>
+
+      {/* Desktop Table View - Hidden on mobile */}
+      <div className="hidden lg:block rounded-[6px] border border-border-default overflow-x-auto">
         <Table className="min-w-[700px]">
           <TableHeader>
             <TableRow>

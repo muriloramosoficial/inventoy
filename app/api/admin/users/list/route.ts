@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
-    // 2. Check if user is system admin/staff (using server client for profile check)
+    // 2. Check if user is system admin/staff
     const { data: adminProfile } = await supabaseServer
       .from("profiles")
       .select("is_system_admin, is_staff")
@@ -23,7 +23,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
     }
 
-    // 3. Use admin client (service role) to fetch ALL users bypassing RLS
+    // 3. Rate limiting - max 30 requests per minute per admin
+    const { checkRateLimit } = await import('@/lib/rate-limiter');
+    const rateLimitResult = await checkRateLimit(`admin:users:list:${adminUser.id}`, 30, 60);
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
+    }
+
+    // 4. Use admin client (service role) to fetch ALL users bypassing RLS
     const supabaseAdmin = createAdminClient();
 
     const { data: profiles, error: profilesError } = await supabaseAdmin
@@ -63,6 +70,16 @@ export async function GET(request: NextRequest) {
       ...u,
       tenants: u.tenant_id ? tenantMap[u.tenant_id] || null : null,
     }));
+
+    // 5. Audit log
+    await supabaseAdmin.from('audit_log').insert({
+      admin_user_id: adminUser.id,
+      action: 'list_all_users',
+      target_table: 'profiles',
+      target_id: null,
+      metadata: { count: usersWithTenants.length },
+      created_at: new Date().toISOString(),
+    }).catch(() => {}); // Don't fail request if audit log fails
 
     return NextResponse.json({ users: usersWithTenants });
   } catch (err) {

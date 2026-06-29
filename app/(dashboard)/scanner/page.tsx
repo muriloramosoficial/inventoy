@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Html5Qrcode } from "html5-qrcode";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Package, CheckCircle, AlertCircle, History, Camera, CameraOff, ScanLine, Settings, RotateCcw, Video, VideoOff, ShieldAlert, Bug } from "lucide-react";
+import { Package, CheckCircle, AlertCircle, History, Camera, CameraOff, ScanLine, Settings, RotateCcw, Video, VideoOff, ShieldAlert, Barcode, CheckCheck } from "lucide-react";
 import { TechBadge } from "@/components/tech-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,31 +12,93 @@ interface ScanResult {
   timestamp: string;
   status: "found" | "not_found";
   productName?: string;
+  rawValue?: string;
+  format?: string;
+}
+
+type BarcodeFormat = 
+  | "aztec"
+  | "code_128"
+  | "code_39"
+  | "code_93"
+  | "codabar"
+  | "data_matrix"
+  | "ean_13"
+  | "ean_8"
+  | "itf"
+  | "maxicode"
+  | "pdf_417"
+  | "qr_code"
+  | "upc_a"
+  | "upc_e";
+
+interface BarcodeDetector {
+  new (options?: { formats?: BarcodeFormat[] }): BarcodeDetector;
+  detect(source: ImageBitmapSource): Promise<DetectedBarcode[]>;
+  getSupportedFormats(): Promise<BarcodeFormat[]>;
+}
+
+interface DetectedBarcode {
+  rawValue: string;
+  format: BarcodeFormat;
+  boundingBox?: DOMRectReadOnly;
+  cornerPoints?: ReadonlyArray<DOMPoint>;
+}
+
+declare global {
+  interface Window {
+    BarcodeDetector: {
+      new (options?: { formats?: BarcodeFormat[] }): BarcodeDetector;
+      getSupportedFormats(): Promise<BarcodeFormat[]>;
+    };
+  }
 }
 
 export default function ScannerPage() {
   const [scanResults, setScanResults] = useState<ScanResult[]>([]);
   const [lastSku, setLastSku] = useState("");
-  const [scanner, setScanner] = useState<Html5Qrcode | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const [cameraPermission, setCameraPermission] = useState<PermissionState>("prompt");
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [showSettings, setShowSettings] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
+  const [barcodeDetectorSupported, setBarcodeDetectorSupported] = useState(false);
+  const [barcodeFormats, setBarcodeFormats] = useState<BarcodeFormat[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  
   const lastScanRef = useRef<string>("");
   const mountedRef = useRef(true);
-  const previewRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const barcodeDetectorRef = useRef<BarcodeDetector | null>(null);
+  const scanIntervalRef = useRef<number | null>(null);
+  const lastDetectedRef = useRef<string>("");
 
   const addLog = useCallback((msg: string) => {
     const timestamp = new Date().toLocaleTimeString("pt-BR");
     const log = `[${timestamp}] ${msg}`;
     console.log(log);
-    setDebugLogs(prev => [...prev.slice(-20), log]);
+    setDebugLogs(prev => [...prev.slice(-30), log]);
   }, []);
 
-  // Check camera permission on mount
+  // Check Barcode Detector API support on mount
   useEffect(() => {
+    const supported = "BarcodeDetector" in window;
+    addLog(`BarcodeDetector API: ${supported ? "SUPORTADO" : "NÃO SUPORTADO"}`);
+    setBarcodeDetectorSupported(supported);
+
+    if (supported) {
+      // Get supported formats
+      const BarcodeDetectorClass = (window as any).BarcodeDetector;
+      const detector = new BarcodeDetectorClass();
+      detector.getSupportedFormats().then((formats: BarcodeFormat[]) => {
+        addLog(`Formatos suportados: ${formats.join(", ")}`);
+        setBarcodeFormats(formats);
+      }).catch((err: unknown) => addLog(`Erro ao obter formatos: ${err}`));
+    }
+
+    // Check camera permission
     navigator.permissions.query({ name: "camera" as PermissionName }).then((perm) => {
       addLog(`Initial permission: ${perm.state}`);
       setCameraPermission(perm.state);
@@ -49,99 +110,159 @@ export default function ScannerPage() {
   }, [addLog]);
 
   const stopCamera = useCallback(async () => {
-    if (scanner && isScanning) {
-      try {
-        await scanner.stop();
-        addLog("Camera stopped");
-      } catch (e) {
-        addLog(`Stop error: ${e}`);
-      }
-      setIsScanning(false);
-      setScanner(null);
+    if (scanIntervalRef.current) {
+      cancelAnimationFrame(scanIntervalRef.current);
+      scanIntervalRef.current = null;
     }
-  }, [scanner, isScanning]);
-
-  const requestCameraPermission = useCallback(async () => {
-    try {
-      addLog(`Requesting camera permission (facingMode: ${facingMode})...`);
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } } 
-      });
-      addLog("Permission granted, stopping test stream");
-      stream.getTracks().forEach(track => track.stop());
-      return true;
-    } catch (err: any) {
-      addLog(`Permission request failed: ${err.name} - ${err.message}`);
-      return false;
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+      addLog("Camera stream stopped");
     }
-  }, [facingMode]);
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsScanning(false);
+    barcodeDetectorRef.current = null;
+  }, [addLog]);
 
   const startCamera = useCallback(async () => {
     addLog("=== START CAMERA ===");
     setCameraError("");
-    
-    // Clean up any existing scanner first
-    if (scanner) {
-      try { 
-        await scanner.stop(); 
-        addLog("Previous scanner stopped");
-      } catch (e) { addLog(`Stop prev error: ${e}`); }
-    }
 
-    // Wait for DOM to be ready
-    if (!previewRef.current) {
-      addLog("ERROR: Preview ref not ready");
-      setCameraError("Elemento de preview não encontrado. Tente novamente.");
+    // Clean up any existing
+    await stopCamera();
+
+    // Check DOM
+    if (!videoRef.current) {
+      addLog("ERROR: Video ref not ready");
+      setCameraError("Elemento de vídeo não encontrado. Tente novamente.");
       return;
     }
-    addLog(`Preview element found: ${previewRef.current.id}`);
+    addLog(`Video element found`);
 
-    // Check current permission state
+    // Check permission state
     if (cameraPermission === "denied") {
-      setCameraError("Permissão de câmera negada anteriormente. Permita na barra de endereço e tente novamente.");
+      setCameraError("Permissão de câmera negada. Permita na barra de endereço 📷/🛡️ e tente novamente.");
       return;
     }
 
-    // If permission not yet granted, request it explicitly
+    // Check API support
+    if (!barcodeDetectorSupported) {
+      setCameraError("BarcodeDetector API não suportada neste navegador. Use Chrome/Edge 83+.");
+     
+      return;
+    }
+
+    // Request permission if needed
     if (cameraPermission !== "granted") {
       addLog("Permission not granted, requesting...");
-      const granted = await requestCameraPermission();
-      if (!granted) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } } 
+        });
+        addLog("Permission granted via getUserMedia");
+        stream.getTracks().forEach(track => track.stop());
+      } catch (err: any) {
+        addLog(`Permission request failed: ${err.name} - ${err.message}`);
         const perm = await navigator.permissions.query({ name: "camera" as PermissionName });
         setCameraPermission(perm.state);
-        addLog(`Permission state after request: ${perm.state}`);
         if (perm.state === "denied") {
-          setCameraError("Permissão negada. Permita na barra de endereço 📷/🛡️ e clique na câmera novamente.");
+          setCameraError("Permissão negada. Permita na barra de endereço 📷/🛡️ e tente novamente.");
           return;
         }
       }
     }
 
     try {
-      addLog("Creating Html5Qrcode instance...");
-      const html5QrCode = new Html5Qrcode("scanner-preview");
-            addLog("Html5Qrcode created, starting...");
-            setScanner(html5QrCode);
+      // Get camera stream
+      addLog(`Requesting camera stream (facingMode: ${facingMode})...`);
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode, 
+          width: { ideal: 1280 }, 
+          height: { ideal: 720 },
+          frameRate: { ideal: 30 }
+        } 
+      });
+      streamRef.current = stream;
+      addLog("Got camera stream");
 
-            await html5QrCode.start(
-        { facingMode },
-        {
-          fps: 15,
-          qrbox: { width: 250, height: 150 },
-          aspectRatio: 1.7778,
-        },
-        (decodedText) => {
-          if (mountedRef.current) {
-            addLog(`Scan detected: ${decodedText}`);
-            handleScan(decodedText);
-          }
-        },
-        (err) => {
-          // Ignore scan errors (no code found)
+      // Setup video element
+      if (!videoRef.current) {
+        addLog("ERROR: Video ref lost");
+        stream.getTracks().forEach(track => track.stop());
+        return;
+      }
+      
+      videoRef.current.srcObject = stream;
+      addLog("Video srcObject set");
+
+      // Wait for video to be ready
+      await new Promise<void>((resolve, reject) => {
+        if (!videoRef.current) {
+          reject(new Error("Video ref lost"));
+          return;
         }
-      );
-      addLog("Camera STARTED successfully!");
+        
+        videoRef.current.onloadedmetadata = () => {
+          addLog(`Video metadata loaded: ${videoRef.current?.videoWidth}x${videoRef.current?.videoHeight}`);
+          videoRef.current?.play().then(() => {
+            addLog("Video playing");
+            resolve();
+          }).catch(reject);
+        };
+        
+        videoRef.current.onerror = (e) => {
+          addLog(`Video error: ${e}`);
+          reject(new Error("Video error"));
+        };
+        
+        // Timeout
+        setTimeout(() => reject(new Error("Video load timeout")), 10000);
+      });
+
+      // Create BarcodeDetector
+      const BarcodeDetectorClass = (window as any).BarcodeDetector;
+      barcodeDetectorRef.current = new BarcodeDetectorClass({
+        formats: barcodeFormats.length > 0 ? barcodeFormats : undefined
+      });
+      addLog(`BarcodeDetector created with formats: ${barcodeFormats.join(", ") || "auto"}`);
+
+      // Start scanning loop
       setIsScanning(true);
+      addLog("Starting scan loop...");
+
+      const scanLoop = async () => {
+        if (!mountedRef.current || !isScanning || !videoRef.current || !barcodeDetectorRef.current) {
+          return;
+        }
+
+        try {
+          const barcodes = await barcodeDetectorRef.current.detect(videoRef.current);
+          
+          if (barcodes.length > 0) {
+            for (const barcode of barcodes) {
+              const value = barcode.rawValue.trim();
+              if (value && value !== lastDetectedRef.current) {
+                lastDetectedRef.current = value;
+                addLog(`BARCODE DETECTED: ${value} (${barcode.format})`);
+                handleScan(value, barcode.format);
+                break; // Only process first barcode
+              }
+            }
+          }
+        } catch (err) {
+          // Detection errors are normal (no barcode found), ignore
+        }
+
+        if (isScanning && mountedRef.current) {
+          scanIntervalRef.current = requestAnimationFrame(scanLoop);
+        }
+      };
+
+      scanIntervalRef.current = requestAnimationFrame(scanLoop);
+
     } catch (err: any) {
       addLog(`START ERROR: ${err.name} - ${err.message}`);
       console.error("[Scanner] Camera error:", err);
@@ -162,9 +283,9 @@ export default function ScannerPage() {
       }
       setCameraError(errorMessage);
       setIsScanning(false);
-      setScanner(null);
+      await stopCamera();
     }
-  }, [scanner, facingMode]);
+  }, [facingMode, cameraPermission, barcodeDetectorSupported, barcodeFormats, addLog]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -175,39 +296,44 @@ export default function ScannerPage() {
   }, [stopCamera]);
 
   useEffect(() => {
-    if (isScanning) {
+    if (isScanning && facingMode) {
       stopCamera();
       setTimeout(startCamera, 100);
     }
   }, [facingMode]);
 
-  const handleScan = useCallback((value: string) => {
+  const handleScan = useCallback((value: string, format: string) => {
     const cleanSku = value.trim().toUpperCase();
     if (!cleanSku || cleanSku === lastScanRef.current) return;
     lastScanRef.current = cleanSku;
+    lastDetectedRef.current = value;
 
-    const found = Math.random() > 0.3;
+    const found = Math.random() > 0.3; // Mock - replace with real DB lookup
     const result: ScanResult = {
       sku: cleanSku,
       timestamp: new Date().toLocaleTimeString("pt-BR"),
       status: found ? "found" : "not_found",
       productName: found ? `Produto ${cleanSku}` : undefined,
+      rawValue: value,
+      format,
     };
 
     setScanResults((prev) => [result, ...prev]);
     if ("vibrate" in navigator) {
       navigator.vibrate(found ? [100] : [50, 50, 50]);
     }
-  }, []);
+    addLog(`Scan processed: ${cleanSku} (${format}) - ${found ? "FOUND" : "NOT FOUND"}`);
+  }, [addLog]);
 
   const clearHistory = () => {
     setScanResults([]);
     lastScanRef.current = "";
+    lastDetectedRef.current = "";
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && e.currentTarget.value.trim()) {
-      handleScan(e.currentTarget.value);
+      handleScan(e.currentTarget.value, "manual");
       e.currentTarget.value = "";
     }
   };
@@ -217,11 +343,19 @@ export default function ScannerPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-brand/10 flex items-center justify-center">
-            <Bug className="h-5 w-5 text-brand" />
+            {barcodeDetectorSupported ? (
+              <CheckCheck className="h-5 w-5 text-brand" />
+            ) : (
+              <Barcode className="h-5 w-5 text-brand-warning" />
+            )}
           </div>
           <div>
-            <h1 className="text-2xl font-semibold text-text-primary">Scanner (Debug)</h1>
-            <p className="text-sm text-text-muted">Câmera com logs de debug</p>
+            <h1 className="text-2xl font-semibold text-text-primary">Scanner (Native)</h1>
+            <p className="text-sm text-text-muted">
+              {barcodeDetectorSupported 
+                ? `API nativa ativa - ${barcodeFormats.length} formatos` 
+                : "API não suportada - use Chrome/Edge 83+"}
+            </p>
           </div>
         </div>
         <Button variant="ghost" size="sm" onClick={() => setShowSettings(!showSettings)}>
@@ -239,7 +373,7 @@ export default function ScannerPage() {
           {debugLogs.map((log, i) => (
             <div key={i} className="border-l border-brand/20 pl-2">{log}</div>
           ))}
-          {debugLogs.length === 0 && <span className="text-xs">Nenhum log ainda. Clique na câmera.</span>}
+          {debugLogs.length === 0 && <span className="text-xs">Nenhum log. Clique na câmera.</span>}
         </div>
       </div>
 
@@ -329,7 +463,6 @@ export default function ScannerPage() {
           </div>
         )}
         <div
-          ref={previewRef}
           id="scanner-preview"
           className={`w-full ${isScanning ? "min-h-[300px] sm:min-h-[400px]" : "min-h-[200px]"} rounded-none bg-black/60 transition-all cursor-pointer`}
           onClick={isScanning ? stopCamera : startCamera}
@@ -343,9 +476,20 @@ export default function ScannerPage() {
           )}
           {isScanning && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="bg-black/50 rounded-lg p-4 text-center">
-                <CameraOff className="h-8 w-8 text-white/70 mx-auto mb-2" />
-                <p className="text-white text-sm">Toque para parar</p>
+              <video
+                ref={videoRef}
+                id="scanner-video"
+                className="w-full h-full object-cover"
+                autoPlay
+                playsInline
+                muted
+                style={{ visibility: "visible" }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="bg-black/50 rounded-lg p-4 text-center">
+                  <CameraOff className="h-8 w-8 text-white/70 mx-auto mb-2" />
+                  <p className="text-white text-sm">Toque para parar</p>
+                </div>
               </div>
             </div>
           )}
@@ -375,7 +519,7 @@ export default function ScannerPage() {
             <Button onClick={() => {
               const input = document.querySelector('input[placeholder="Digite o código SKU..."]') as HTMLInputElement;
               if (input?.value) {
-                handleScan(input.value);
+                handleScan(input.value, "manual");
                 input.value = "";
               }
             }}>
@@ -439,7 +583,7 @@ export default function ScannerPage() {
                   {result.status === "found" ? (
                     <CheckCircle className="h-5 w-5 shrink-0 text-brand" />
                   ) : (
-                    <AlertCircle className="h-5 w-5 shrink-0 text-brand-warning" />
+                    <AlertCircle className="h-5 w-5 shrink-0 shrink-0 text-brand-warning" />
                   )}
                   <div className="min-w-0">
                     <p className="text-sm font-mono text-text-primary truncate">{result.sku}</p>
@@ -458,16 +602,9 @@ export default function ScannerPage() {
         <div className="rounded-xl border-2 border-dashed border-border-default bg-bg-secondary/50 p-8 text-center">
           <Package className="h-16 w-16 mx-auto mb-4 opacity-30" />
           <p className="text-sm text-text-secondary">Nenhum item escaneado ainda</p>
-          <p className="text-xs text-text-muted mt-1">Toque na área da câmera para iniciar</p>
+          <p className="text-xs text-text-muted mt-1">Toque na área da câmera para iniciar ou digite um SKU manualmente</p>
         </div>
       )}
     </div>
   );
-}
-
-interface ScanResult {
-  sku: string;
-  timestamp: string;
-  status: "found" | "not_found";
-  productName?: string;
 }

@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   ArrowRightLeft,
-  ScanLine,
   Settings,
   LogOut,
   AlertTriangle,
@@ -95,14 +94,12 @@ export default function DashboardLayout({
     { label: "Painel", href: "/dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
     { label: "Patrimonio", href: "/products", icon: <Package className="h-5 w-5" /> },
     { label: "Movimentos", href: "/movements", icon: <ArrowRightLeft className="h-5 w-5" /> },
-    { label: "Scanner", href: "/scanner", icon: <ScanLine className="h-5 w-5" /> },
   ];
 
   const mobileMenuItems = [
     { label: "Painel", href: "/dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
     { label: "Patrimonio", href: "/products", icon: <Box className="h-5 w-5" /> },
     { label: "Movimentacoes", href: "/movements", icon: <ArrowRightLeft className="h-5 w-5" /> },
-    { label: "Leitor", href: "/scanner", icon: <ScanLine className="h-5 w-5" /> },
     { label: "Categorias", href: "/categories", icon: <Tags className="h-5 w-5" /> },
     { label: "Locais", href: "/locations", icon: <MapPin className="h-5 w-5" /> },
     { label: "Relatorios", href: "/reports", icon: <BarChart3 className="h-5 w-5" /> },

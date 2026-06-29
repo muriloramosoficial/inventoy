@@ -13,7 +13,6 @@ import {
   ChevronRight,
   Box,
   Code2,
-  ScanLine,
   Settings,
 } from "lucide-react";
 
@@ -27,7 +26,6 @@ const navItems: NavItem[] = [
   { label: "Painel", href: "/dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
   { label: "Patrimonio", href: "/products", icon: <Box className="h-4 w-4" /> },
   { label: "Movimentacoes", href: "/movements", icon: <ArrowRightLeft className="h-4 w-4" /> },
-  { label: "Leitor", href: "/scanner", icon: <ScanLine className="h-4 w-4" /> },
   { label: "Categorias", href: "/categories", icon: <Tags className="h-4 w-4" /> },
   { label: "Locais", href: "/locations", icon: <MapPin className="h-4 w-4" /> },
   { label: "Relatorios", href: "/reports", icon: <BarChart3 className="h-4 w-4" /> },

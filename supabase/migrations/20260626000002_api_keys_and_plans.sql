@@ -58,7 +58,6 @@ begin
   v_feature_plans := case p_feature
     when 'api' then array['starter', 'pro', 'enterprise']
     when 'api_key' then array['starter', 'pro', 'enterprise']
-    when 'scanner' then array['starter', 'pro', 'enterprise']
     when 'csv_export' then array['starter', 'pro', 'enterprise']
     when 'analytics' then array['starter', 'pro', 'enterprise']
     when 'multiple_locations' then array['pro', 'enterprise']

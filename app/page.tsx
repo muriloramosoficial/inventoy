@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Box, BarChart3, Package, ScanLine, CreditCard, Shield, ArrowRight, Check, Menu, X, Users, Cloud, ChevronDown, Star, TrendingUp, Globe, Lock, Activity, Award, Sparkles, Layers, RefreshCw, HeadphonesIcon, BookOpen } from "lucide-react";
+import { Box, BarChart3, Package, CreditCard, Shield, ArrowRight, Check, Menu, X, Users, Cloud, ChevronDown, Star, TrendingUp, Globe, Lock, Activity, Award, Sparkles, Layers, RefreshCw, HeadphonesIcon, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -103,7 +103,6 @@ function PricingCard({ name, price, period, desc, features, cta, highlighted, on
 
 const features = [
   { icon: Package, title: "Gestao de Patrimonio", desc: "Registre todos os bens da empresa com placa de patrimonio, marca, modelo, numero de serie e responsavel. Saiba onde cada item esta a qualquer momento.", gradient: true },
-  { icon: ScanLine, title: "Leitor de Codigo de Barras", desc: "Scanner mobile nativo com camera. Identifique itens por placa ou codigo de barras direto do chao de fabrica, sem equipamentos extras." },
   { icon: BarChart3, title: "Relatorios e Auditoria", desc: "Dashboard completo com historico de movimentacoes, quem moveu cada item, quando e para onde. Relatorios exportaveis em CSV." },
   { icon: Users, title: "Controle por Papels", desc: "Administradores, gerentes e operadores com permissoes granulares. Cada usuario ve exatamente o que precisa para seu trabalho." },
   { icon: CreditCard, title: "Assinatura Mensal Flexivel", desc: "Planos a partir de R$ 49/mes com pagamento via PIX, Boleto ou Cartao. Sem taxa de setup. Cancele quando quiser, sem multas.", gradient: true },
@@ -123,13 +122,11 @@ const defaultPlans = [
 const testimonials = [
   { quote: "O INVENTOY transformou nossa gestão de patrimonio. Reduzimos perdas em 40% no primeiro mês.", author: "Carlos Silva", role: "CEO, LogTech Transportes", stars: 5 },
   { quote: "A API REST foi fundamental para integrar com nosso ERP. A documentação é clara e completa.", author: "Ana Oliveira", role: "CTO, StockPlus Ltda", stars: 5 },
-  { quote: "Testei vários sistemas, mas o INVENTOY é o único que oferece scanner nativo sem custo extra.", author: "Ricardo Mendes", role: "Gerente de Operações, Distribuidora ABC", stars: 5 },
 ];
 
 const faqItems = [
   { q: "Precisa de cartao de credito para testar?", a: "Nao! Sao 14 dias de teste gratis sem cartao de credito. Cancele quando quiser." },
   { q: "Posso migrar meus dados de outro sistema?", a: "Sim! Oferecemos suporte na migracao via CSV. Nossa equipe ajuda com a importacao dos seus itens e inventario." },
-  { q: "O leitor de codigos funciona em qualquer celular?", a: "Sim. O leitor usa a camera do celular e funciona em qualquer dispositivo com navegador moderno (Chrome, Safari, Edge)." },
   { q: "Como funciona a seguranca dos meus dados?", a: "Cada empresa tem isolamento total de dados. Criptografia em transito e em repouso." },
   { q: "Posso cancelar minha assinatura a qualquer momento?", a: "Sim! Nao temos fidelidade. Voce pode cancelar sua assinatura no painel de configuracoes. O acesso continua ate o fim do periodo ja pago." },
   { q: "A API tem limite de requisicoes?", a: "Sim, para garantir estabilidade para todos os clientes. O plano Starter tem 60 req/min e o Pro tem 120 req/min." },
